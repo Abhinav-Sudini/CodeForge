@@ -25,7 +25,7 @@ func runWorker() error {
 
 	http.HandleFunc("/judge/",handlers.Compile_and_judge_handler)
 
-	PORT,err := strconv.Atoi(os.Getenv("WORKER_PORT"))
+	PORT,err := strconv.Atoi(os.Getenv("WORKER_PORT_CF"))
 	if err != nil {
 		return err
 	}

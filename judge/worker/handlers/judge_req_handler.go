@@ -45,12 +45,12 @@ func create_new_job(stream io.ReadCloser) error {
 		go func() {
 			defer WorkerMutex.Unlock()
 			//runing the job and posting the verdict
-			verdict := runner.RunJobAndGetResult(&judgeReq)
-			err := PostResponseToMaster(verdict)
+			run,err := runner.NewRunner(judgeReq.Runtime)
+			verdict := run.RunJobAndGetResult(&judgeReq)
+			err = PostResponseToMaster(verdict)
 			if err != nil {
 				panic(err.Error())
 			}
-
 		}()
 
 	}else{

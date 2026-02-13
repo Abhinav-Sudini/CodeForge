@@ -1,0 +1,7 @@
+{
+  "code": "/home/abhi/code/projects/codeForge/judge/worker/test_environment",
+  "TestCasesDir": "/home/abhi/code/projects/codeForge/judge/worker/test_environment/testcases",
+  "runtime": "c++17",
+  "timeConstrain": 2000,
+  "memConstrain": 256000
+}
