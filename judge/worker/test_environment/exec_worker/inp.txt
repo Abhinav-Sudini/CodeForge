@@ -1,6 +1,6 @@
 {
-  "code": "/home/abhi/code/projects/codeForge/judge/worker/test_environment",
-  "TestCasesDir": "/home/abhi/code/projects/codeForge/judge/worker/test_environment/testcases",
+  "code": "/codeForge/exec_worker",
+  "TestCasesDir": "/codeForge/cses_tc/pal_cses",
   "runtime": "c++17",
   "timeConstrain": 2000,
   "memConstrain": 256000
