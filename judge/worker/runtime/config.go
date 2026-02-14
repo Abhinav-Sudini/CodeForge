@@ -12,6 +12,7 @@ type Runtime_conf struct{
 const BinaryFileName = "out.bin"
 const StdErrorFileName = "std.err"
 const StdOutFileName = "std.out"
+const VerdictFileName = "verdict.json"
 
 var allRuntimes = map[string]Runtime_conf{
 

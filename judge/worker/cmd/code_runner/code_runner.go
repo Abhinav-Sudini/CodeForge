@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"worker/runner"
+	"worker/runtime"
 	"worker/utils"
 )
 
@@ -42,29 +44,27 @@ func main(){
 		fmt.Println("[exec error] you need to be root in order to run the application")
 	}
 
-	//drop privleges immediatly from root
-	err = syscall.Unshare(syscall.CLONE_NEWNET)
-	if err != nil {
-			panic(err)
-	}
-	fmt.Println("test 1")
+	// drop privleges immediatly from root
+	// err = syscall.Unshare(syscall.CLONE_NEWNET)
+	// if err != nil {
+	// 		panic(err)
+	// }
 
 	//Drop all groups
 	if err := syscall.Setgroups([]int{}); err != nil {
 			panic(err)
 	}
 
-	fmt.Println("test 1")
 	// Drop GID first
 	if err := syscall.Setgid(nobodyGID); err != nil {
 			panic(err)
 	}
 
-	fmt.Println("test 3")
 	// Drop UID
 	if err := syscall.Setuid(nobodyUID); err != nil {
 			panic(err)
 	}
+	fmt.Println("[worker] all privleges droped ")
 	
 	runner_params,err := runner.GetRunnerParams() //params are passed in as json through stdin
 	if err != nil {
@@ -90,8 +90,9 @@ func main(){
 		panic(err)
 	}
 	io_reader := bytes.NewBuffer(json_res)
-	utils.SaveFileFromBuf(runner_params.CodeDir,io_reader)
+	verdict_file_path := filepath.Join(runner_params.CodeDir,runtime.VerdictFileName)
+	utils.SaveFileFromBuf(verdict_file_path,io_reader)
 
-	fmt.Println("[Verdict] : ",verdict)
+	fmt.Println("[Verdict] : ",string(json_res))
 
 }
