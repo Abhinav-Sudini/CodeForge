@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os/user"
 	"strconv"
 	"syscall"
 	"worker/runner"
+	"worker/utils"
 )
 
 const nobodyUID = 65534
@@ -68,12 +71,27 @@ func main(){
 		fmt.Println("[exec error] plz pass in the correct params")
 	}
 
-	fmt.Println("running the compilation proc")
+	fmt.Println("[New Job] running the compilation proc")
+	fmt.Println("[New Job] running the compilation proc")
+	fmt.Println("[New Job] running the compilation proc")
 	fmt.Println(runner_params)
+
+	//call to compile and test
 	verdict,err := runner.CompileRunAndTests(runner_params)
 	if err != nil {
 		panic(err)
 	}
+
+	//generating the output file
+	verdict.MSG = runner.GenerateResultMSG(verdict)
+	json_res,err := json.Marshal(verdict)
+	if err != nil {
+		fmt.Println("[worker] unable to marshal")
+		panic(err)
+	}
+	io_reader := bytes.NewBuffer(json_res)
+	utils.SaveFileFromBuf(runner_params.CodeDir,io_reader)
+
 	fmt.Println("[Verdict] : ",verdict)
 
 }
