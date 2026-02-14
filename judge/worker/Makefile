@@ -4,5 +4,49 @@ worker:
 
 .PHONY: runner
 runner:
-	go build -o ./test_environment/main ./cmd/code_runner/code_runner.go
+	go build -o ./test_environment/exec_worker/exec_worker ./cmd/code_runner/code_runner.go
 
+
+
+
+
+.PHONY: build_docker_dev
+build_docker_dev:
+	docker build -f Dockerfile.dev -t worker_runtime:dev .
+
+.PHONY: run_docker_dev
+run_docker_dev:
+	docker run \
+		--mount type=bind,source=./test_environment,target=/codeForge \
+		--env-file worker.env \
+		worker_runtime:dev
+
+.PHONY: it_run_docker_dev
+it_run_docker_dev:
+	docker run \
+		--mount type=bind,source=./test_environment,target=/codeForge \
+		-it --rm --env-file worker.env \
+		worker_runtime:dev /bin/bash
+
+
+
+
+
+# alpine builds
+.PHONY: alpine_build_docker_dev
+alpine_build_docker_dev:
+	docker build -f Dockerfile.dev.alpine -t worker_runtime:dev.alpine .
+
+.PHONY: alpine_run_docker_dev
+alpine_run_docker_dev:
+	docker run \
+		--mount type=bind,source=./test_environment,target=/codeForge \
+		--env-file worker.env \
+		worker_runtime:dev.alpine
+
+.PHONY: alpine_it_run_docker_dev
+alpine_it_run_docker_dev:
+	docker run \
+		--mount type=bind,source=./test_environment,target=/codeForge \
+		-it --rm --env-file worker.env \
+		worker_runtime:dev.alpine /bin/sh
