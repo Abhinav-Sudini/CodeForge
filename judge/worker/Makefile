@@ -4,7 +4,11 @@ worker:
 
 .PHONY: runner
 runner:
-	go build -o ./test_environment/main ./cmd/code_runner/code_runner.go
+	go build -o ./test_environment/exec_worker/exec_worker ./cmd/code_runner/code_runner.go
+
+
+
+
 
 .PHONY: build_docker_dev
 build_docker_dev:
