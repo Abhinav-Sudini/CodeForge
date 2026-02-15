@@ -46,8 +46,11 @@ func create_new_job(stream io.ReadCloser) error {
 			defer WorkerMutex.Unlock()
 			//runing the job and posting the verdict
 			run,err := runner.NewRunner(judgeReq.Runtime)
-			verdict := run.RunJobAndGetResult(&judgeReq)
-			err = PostResponseToMaster(verdict)
+			Result,err := run.RunJobAndGetResult(&judgeReq)
+			if err!=nil {
+				panic(err)
+			}
+			err = PostResponseToMaster(Result)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -63,6 +66,7 @@ func create_new_job(stream io.ReadCloser) error {
 
 func Compile_and_judge_handler(w http.ResponseWriter, r *http.Request){
 	err := create_new_job(r.Body)
+	fmt.Println("got new req")
 	if err != nil {
 		fmt.Println("[judge] worker faied with error : ",err)
 		http.Error(w,err.Error(),http.StatusBadRequest)

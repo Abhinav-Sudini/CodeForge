@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"errors"
-	"worker/types"
+	"worker/runner"
 )
 
 
-func PostResponseToMaster(verdict types.JudgeCodeReqVerdict) error {
+func PostResponseToMaster(verdict runner.SubmitionResult) error {
 	//TODO
 	return errors.New("some error")
 }

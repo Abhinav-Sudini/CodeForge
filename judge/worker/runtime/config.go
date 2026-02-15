@@ -1,5 +1,6 @@
 package runtime
 
+
 type Runtime_conf struct{
 	Runtime string
 	CompileComand []string
@@ -13,6 +14,8 @@ const BinaryFileName = "out.bin"
 const StdErrorFileName = "std.err"
 const StdOutFileName = "std.out"
 const VerdictFileName = "verdict.json"
+
+var ExecWorkerStartComand = "./exec_worker.bin"
 
 var allRuntimes = map[string]Runtime_conf{
 
@@ -29,6 +32,14 @@ var allRuntimes = map[string]Runtime_conf{
 		RunComand: []string{"go","run","Code.go"},
 		CodeFileName: "Code.go",
 	},
+}
+
+func GetCodeFileName(runtime string) string {
+	r,ok := allRuntimes[runtime] 
+	if ok == false {
+		return "Code"
+	}
+	return r.CodeFileName
 }
 
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/user"
 	"path/filepath"
 	"strconv"
@@ -71,10 +72,13 @@ func main(){
 		fmt.Println("[exec error] plz pass in the correct params")
 	}
 
+
 	fmt.Println("[New Job] running the compilation proc")
 	fmt.Println("[New Job] running the compilation proc")
 	fmt.Println("[New Job] running the compilation proc")
 	fmt.Println(runner_params)
+
+	os.Chdir(runner_params.CodeDir)
 
 	//call to compile and test
 	verdict,err := runner.CompileRunAndTests(runner_params)
