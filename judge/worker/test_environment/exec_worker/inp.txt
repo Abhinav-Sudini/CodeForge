@@ -1,7 +1,0 @@
-{
-  "code": "/codeForge/exec_worker",
-  "TestCasesDir": "/codeForge/cses_tc/pal_cses",
-  "runtime": "c++17",
-  "timeConstrain": 2000,
-  "memConstrain": 256000
-}

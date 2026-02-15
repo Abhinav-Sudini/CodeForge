@@ -1,0 +1,7 @@
+{
+  "code": "/codeForge/codeDir",
+  "TestCasesDir": "/codeForge/questionsDir/1068",
+  "runtime": "c++17",
+  "timeConstrain": 2000,
+  "memConstrain": 256000
+}
