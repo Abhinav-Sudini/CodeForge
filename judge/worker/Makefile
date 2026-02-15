@@ -1,7 +1,15 @@
-
+# Runners
 worker: 
 	go run ./cmd/main/start_server.go
 
+scraper:
+	go run ./cmd/cses_scraper/scraper.go 
+
+
+
+
+
+# Builders 
 .PHONY: runner
 runner:
 	go build -o ./test_environment/exec_worker/exec_worker.bin ./cmd/code_runner/code_runner.go
@@ -10,6 +18,7 @@ runner:
 
 
 
+# Docker runtimes
 .PHONY: build_docker_dev
 build_docker_dev:
 	docker build -f Dockerfile.dev -t worker_runtime:dev .
