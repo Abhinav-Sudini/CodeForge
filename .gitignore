@@ -1,3 +1,5 @@
 *.env
 *.bin
 cses_questions/
+scraped_testcases/
+scraped_testcases_1/
