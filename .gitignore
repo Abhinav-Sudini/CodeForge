@@ -2,4 +2,5 @@
 *.bin
 cses_questions/
 scraped_testcases/
+scraped_questions/
 scraped_testcases_1/
