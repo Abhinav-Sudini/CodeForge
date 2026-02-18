@@ -1,12 +1,11 @@
 package runtime
 
-
-type Runtime_conf struct{
-	Runtime string
+type Runtime_conf struct {
+	Runtime       string
 	CompileComand []string
-	RunComand []string
+	RunComand     []string
 	FileExtention string
-	CodeFileName string
+	CodeFileName  string
 }
 
 const Is_production = true
@@ -20,37 +19,35 @@ var ExecWorkerStartComand = "/codeForge/exec_worker.bin"
 
 var allRuntimes = map[string]Runtime_conf{
 
-	"c++17":{
-		Runtime: "c++17",
-		CompileComand: []string{"g++","-o",BinaryFileName,"Code.cpp"},
-		RunComand: []string{"./out.bin"},
-		CodeFileName: "Code.cpp",
+	"c++17": {
+		Runtime:       "c++17",
+		CompileComand: []string{"g++", "-o", BinaryFileName, "Code.cpp"},
+		RunComand:     []string{"./out.bin"},
+		CodeFileName:  "Code.cpp",
 	},
 
-	"go 1.25":{
-		Runtime: "go 1.25",
+	"go 1.25": {
+		Runtime:       "go 1.25",
 		CompileComand: []string{}, // can be skiped if no compilation step
-		RunComand: []string{"go","run","Code.go"},
-		CodeFileName: "Code.go",
+		RunComand:     []string{"go", "run", "Code.go"},
+		CodeFileName:  "Code.go",
 	},
 }
 
 func GetCodeFileName(runtime string) string {
-	r,ok := allRuntimes[runtime] 
+	r, ok := allRuntimes[runtime]
 	if ok == false {
 		return "Code"
 	}
 	return r.CodeFileName
 }
 
-
-func GetRuntime(runtime string)(Runtime_conf,bool){
-	r,ok := allRuntimes[runtime]
-	return r,ok
+func GetRuntime(runtime string) (Runtime_conf, bool) {
+	r, ok := allRuntimes[runtime]
+	return r, ok
 }
 
 func Exist(runtime string) bool {
-	_,ok := allRuntimes[runtime]
+	_, ok := allRuntimes[runtime]
 	return ok
 }
-

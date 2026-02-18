@@ -20,11 +20,11 @@ func DirExists(path string) (bool, error) {
 	return false, err // Other error (e.g., permission denied)
 }
 
-func DirExistsAndValidPerms(path string,Perm string) (bool, error) {
+func DirExistsAndValidPerms(path string, Perm string) (bool, error) {
 	info, err := os.Stat(path)
 	if err == nil {
-		if checkPermitionOther(info.Mode(),Perm) == false {
-			return false, errors.New(fmt.Sprint("[util] Permition denied : File ",path," does not have permition ",Perm))
+		if checkPermitionOther(info.Mode(), Perm) == false {
+			return false, errors.New(fmt.Sprint("[util] Permition denied : File ", path, " does not have permition ", Perm))
 		}
 		return info.IsDir(), nil // Path exists, return true if it's a directory
 	}
@@ -34,14 +34,14 @@ func DirExistsAndValidPerms(path string,Perm string) (bool, error) {
 	return false, err // Other error (e.g., permission denied)
 }
 
-func checkPermitionOther(m fs.FileMode,reqPermStr string) bool {
+func checkPermitionOther(m fs.FileMode, reqPermStr string) bool {
 	UnixStylePermStr := m.String()
 	PermOtherUser := UnixStylePermStr[len(UnixStylePermStr)-3:]
 
-	for _,per := range reqPermStr{
-		if strings.ContainsRune(PermOtherUser,per)==false {
+	for _, per := range reqPermStr {
+		if strings.ContainsRune(PermOtherUser, per) == false {
 			return false
-		}	
+		}
 	}
 	return true
 }
@@ -57,11 +57,11 @@ func FileExists(path string) (bool, error) {
 	return false, err // Other error (e.g., permission denied)
 }
 
-func FileExistsAndValidPerms(path string,Perm string) (bool, error) {
+func FileExistsAndValidPerms(path string, Perm string) (bool, error) {
 	info, err := os.Stat(path)
 	if err == nil {
-		if checkPermitionOther(info.Mode(),Perm) == false {
-			return false, errors.New(fmt.Sprint("[util] Permition Denied File",path,"does not have permition",Perm))
+		if checkPermitionOther(info.Mode(), Perm) == false {
+			return false, errors.New(fmt.Sprint("[util] Permition Denied File", path, "does not have permition", Perm))
 		}
 		return !info.IsDir(), nil // Path exists, return true if it's a directory
 	}
@@ -84,5 +84,3 @@ func SaveFileFromBuf(path string, src io.Reader) error {
 	}
 	return nil
 }
-
-

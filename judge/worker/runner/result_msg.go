@@ -18,7 +18,7 @@ import (
 
 func GenerateResultMSG(res SubmitionResult) string {
 	str_test := strconv.Itoa(res.WA_Test_case)
-	switch Verdict(res.Result){
+	switch Verdict(res.Result) {
 	case VerdictAccepted:
 		return config.MsgOnAccepted
 	case VerdictWrongAns:

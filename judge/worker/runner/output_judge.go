@@ -7,7 +7,7 @@ import (
 	"unicode"
 )
 
-func OutputJudge(exp_out *os.File,code_out *bytes.Buffer) bool {
+func OutputJudge(exp_out *os.File, code_out *bytes.Buffer) bool {
 	const bufSize = 64 * 1024 // 64 KB
 
 	bufA := make([]byte, bufSize)
@@ -15,10 +15,10 @@ func OutputJudge(exp_out *os.File,code_out *bytes.Buffer) bool {
 
 	it_A := bufSize + 1
 	it_B := bufSize + 1
-	var errA,errB error
-	var nA,nB int
+	var errA, errB error
+	var nA, nB int
 	for {
-		if it_A >= nA{
+		if it_A >= nA {
 			nA, errA = exp_out.Read(bufA)
 			it_A = 0
 		}
@@ -33,7 +33,7 @@ func OutputJudge(exp_out *os.File,code_out *bytes.Buffer) bool {
 				for it_B < nB {
 					if unicode.IsSpace(rune(bufB[it_B])) {
 						it_B++
-					}else{
+					} else {
 						is_whitespace = false
 						break
 					}
@@ -41,17 +41,17 @@ func OutputJudge(exp_out *os.File,code_out *bytes.Buffer) bool {
 				if is_whitespace == false {
 					break
 				}
-				nB,errB = code_out.Read(bufB)
+				nB, errB = code_out.Read(bufB)
 				it_B = 0
 			}
 			return is_whitespace
-		}else if errB == io.EOF{
+		} else if errB == io.EOF {
 			is_whitespace := true
 			for errA != io.EOF {
 				for it_A < nA {
 					if unicode.IsSpace(rune(bufA[it_A])) {
 						it_A++
-					}else{
+					} else {
 						is_whitespace = false
 						break
 					}
@@ -59,7 +59,7 @@ func OutputJudge(exp_out *os.File,code_out *bytes.Buffer) bool {
 				if is_whitespace == false {
 					break
 				}
-				nA,errA = code_out.Read(bufA)
+				nA, errA = code_out.Read(bufA)
 				it_A = 0
 			}
 			return is_whitespace
@@ -67,12 +67,12 @@ func OutputJudge(exp_out *os.File,code_out *bytes.Buffer) bool {
 
 		if unicode.IsSpace(rune(bufA[it_A])) {
 			it_A++
-		}else if unicode.IsSpace(rune(bufB[it_B])) {
+		} else if unicode.IsSpace(rune(bufB[it_B])) {
 			it_B++
-		}else{
+		} else {
 			if bufA[it_A] != bufB[it_B] {
 				return false
-			}else{
+			} else {
 				it_A++
 				it_B++
 			}

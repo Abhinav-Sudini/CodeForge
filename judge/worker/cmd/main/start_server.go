@@ -7,34 +7,29 @@ import (
 	"strconv"
 
 	"worker/handlers"
-
 )
 
-//can be docker or somthing else
+// can be docker or somthing else
 const worker_runtime = "dev"
 
 func runWorker() error {
 
-	http.HandleFunc("/judge/",handlers.Compile_and_judge_handler)
+	http.HandleFunc("/judge/", handlers.Compile_and_judge_handler)
 
 	PORT := 8000
-	// PORT,err := strconv.Atoi(os.Getenv("WORKER_PORT_CF"))
-	// if err != nil {
-	// 	return err
-	// }
 
 	fmt.Println("Starting server")
 	fmt.Println("sering on http://localhost:", PORT)
 
 	url_addr := "0.0.0.0:" + strconv.Itoa(PORT)
-	err := http.ListenAndServe(url_addr,nil)
+	err := http.ListenAndServe(url_addr, nil)
 	return err
 
 }
 
-func main(){
+func main() {
 	if err := runWorker(); err != nil {
-		fmt.Println("[Worker] exited with error : ",err)
+		fmt.Println("[Worker] exited with error : ", err)
 		os.Exit(1)
 	}
 }

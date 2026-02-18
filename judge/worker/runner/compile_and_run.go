@@ -139,7 +139,7 @@ func CompileRunAndTests(runner_parms types.RunnerParamsJson) (SubmitionResult, e
 		verdict, resourses_used := runForSingleTestCase(runner_parms, test_inp_file, test_exp_out_file)
 		FinalResult.Time_ms = max(FinalResult.Time_ms, resourses_used.Time_ms)
 		FinalResult.Mem_usage = max(FinalResult.Mem_usage, resourses_used.Mem_kb)
-		MyLog.Printdev("[Executioner]", "test case", test_case_no, "done bro", verdict,"time : ",resourses_used.Time_ms)
+		MyLog.Printdev("[Executioner]", "test case", test_case_no, "done bro", verdict, "time : ", resourses_used.Time_ms)
 
 		if verdict != VerdictAccepted {
 			FinalResult.Result = int(verdict)
@@ -174,7 +174,7 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 
 	//creating the comand to be run
 	time_const_multiplier := 2 // as we can hit the dead line but the program might not run for whole time
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(runner_parms.TimeConstrain * time_const_multiplier))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(runner_parms.TimeConstrain*time_const_multiplier))
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, exe_or_interpreter, args...)
@@ -196,7 +196,7 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 
 	_, err := syscall.Wait4(pid_child, &status, 0, &rusage)
 	if err != nil {
-		MyLog.Printdev("[exec runtime error] ","failed to wait :", err)
+		MyLog.Printdev("[exec runtime error] ", "failed to wait :", err)
 		saveStderrAndStdoutToFile(runner_parms.CodeDir, &buf_out, &buf_err)
 		return VerdictWrongAns, resourses_used
 	}
@@ -212,7 +212,7 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	time_usage_in_kernal := utils.GetTimeInMillSec(rusage.Stime)
 	time_usage_in_user := utils.GetTimeInMillSec(rusage.Utime)
 	resourses_used.Mem_kb = int(mem_usage)
-	MyLog.Printdev("runstats kernerl time ",time_usage_in_kernal,"user_time",time_usage_in_user)
+	MyLog.Printdev("runstats kernerl time ", time_usage_in_kernal, "user_time", time_usage_in_user)
 	resourses_used.Time_ms = int(time_usage_in_kernal + time_usage_in_user)
 
 	if mem_usage > int64(runner_parms.MemConstrain) {
