@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+	MyLog "worker/logger"
 	"worker/runtime"
 	"worker/types"
 	"worker/utils"
@@ -138,7 +139,7 @@ func CompileRunAndTests(runner_parms types.RunnerParamsJson) (SubmitionResult, e
 		verdict, resourses_used := runForSingleTestCase(runner_parms, test_inp_file, test_exp_out_file)
 		FinalResult.Time_ms = max(FinalResult.Time_ms, resourses_used.Time_ms)
 		FinalResult.Mem_usage = max(FinalResult.Mem_usage, resourses_used.Mem_kb)
-		fmt.Println("[Executioner] test case", test_case_no, "done bro", verdict)
+		MyLog.Printdev("[Executioner]","test case", test_case_no, "done bro", verdict)
 
 		if verdict != VerdictAccepted {
 			FinalResult.Result = int(verdict)
@@ -185,9 +186,9 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	st_time := time.Now()
 
 	//running the comand
-	fmt.Println("cmd comand being run", cmd.String())
+	MyLog.Printdev("singele exec runner","cmd comand being run", cmd.String())
 	if err := cmd.Run(); err != nil {
-		fmt.Println("[exec runtime error] ", err, ctx.Err())
+		MyLog.Printdev("[exec runtime error] ", err, ctx.Err())
 		if ctx.Err() == context.DeadlineExceeded {
 			return VerdictTLE, ResourcesUsed{
 				Mem_kb:  0,

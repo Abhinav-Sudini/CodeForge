@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -23,7 +24,7 @@ type runner struct{
 }
 
 func NewRunner(requested_runtime string) (Runner,error) {
-	worker_runtime := os.Getenv("WORKER_ENV_CF")
+	worker_runtime := os.Getenv("WORKER_RUNTIME")
 	if worker_runtime == "" || worker_runtime != requested_runtime{
 		return nil,errors.New("[runner]: need a Runtime or not a valid runtime")
 	}
@@ -48,13 +49,14 @@ func (run *runner)RunJobAndGetResult(req *types.JudgeCodeRequest) (SubmitionResu
 	
 	runnerParams := types.RunnerParamsJson{
 		CodeDir: codeFileDir,
-		TestCasesDir: allTasksDir + strconv.Itoa(req.QuestionId),
+		TestCasesDir: filepath.Join(allTasksDir,strconv.Itoa(req.QuestionId)),
 		Runtime: req.Runtime,
 		TimeConstrain: req.TimeConstrain,
 		MemConstrain: req.MemConstrain,
 	}
 	err = runExecWorkerProcessWithParams(runnerParams)
 	if err != nil {
+		fmt.Println("[cmd exec] : ",err)
 		return SubmitionResult{},err
 	}
 
@@ -80,6 +82,10 @@ func runExecWorkerProcessWithParams(runnerParams types.RunnerParamsJson) error {
 	params_json_bytes,_ := json.Marshal(runnerParams)
 	buf_in.Write(params_json_bytes)
 	if err := cmd.Run(); err != nil {
+		t,_ := io.ReadAll(&buf_out) 
+		fmt.Println("[ecec work cout]",string(t))
+		t,_ = io.ReadAll(&buf_err) 
+		fmt.Println("[ecec work cerr]",string(t))
 		return err
 	}
 	return nil

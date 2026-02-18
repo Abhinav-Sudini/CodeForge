@@ -15,7 +15,7 @@ const StdErrorFileName = "std.err"
 const StdOutFileName = "std.out"
 const VerdictFileName = "verdict.json"
 
-var ExecWorkerStartComand = "./exec_worker.bin"
+var ExecWorkerStartComand = "/codeForge/exec_worker.bin"
 
 var allRuntimes = map[string]Runtime_conf{
 

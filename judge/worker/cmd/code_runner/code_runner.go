@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"syscall"
+	MyLog "worker/logger"
 	"worker/runner"
 	"worker/runtime"
 	"worker/utils"
@@ -37,6 +38,7 @@ func checkIfRoot() (bool,error) {
 
 // the program must run as root as setGid and SetUid require privleges
 func main(){
+	MyLog.Printdev("exce worker","exec worker start")
 	isRoot,err := checkIfRoot()
 	if err!=nil {
 		panic(err)
@@ -65,7 +67,7 @@ func main(){
 	if err := syscall.Setuid(nobodyUID); err != nil {
 			panic(err)
 	}
-	fmt.Println("[worker] all privleges droped ")
+	MyLog.Printdev("[worker] all privleges droped ")
 	
 	runner_params,err := runner.GetRunnerParams() //params are passed in as json through stdin
 	if err != nil {
@@ -73,12 +75,13 @@ func main(){
 	}
 
 
-	fmt.Println("[New Job] running the compilation proc")
-	fmt.Println("[New Job] running the compilation proc")
-	fmt.Println("[New Job] running the compilation proc")
-	fmt.Println(runner_params)
+	MyLog.Printdev("exec worker","[New Job] running the compilation proc")
+	MyLog.Printdev("exec worker","params = ",runner_params)
 
-	os.Chdir(runner_params.CodeDir)
+	err = os.Chdir(runner_params.CodeDir)
+	if err != nil {
+		panic("can not change dir error : "+err.Error())
+	}
 
 	//call to compile and test
 	verdict,err := runner.CompileRunAndTests(runner_params)
@@ -97,6 +100,6 @@ func main(){
 	verdict_file_path := filepath.Join(runner_params.CodeDir,runtime.VerdictFileName)
 	utils.SaveFileFromBuf(verdict_file_path,io_reader)
 
-	fmt.Println("[Verdict] : ",string(json_res))
+	MyLog.Printdev("[Verdict] : ",string(json_res))
 
 }

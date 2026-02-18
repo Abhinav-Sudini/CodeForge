@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"errors"
+	"fmt"
 	"worker/runner"
 )
 
 
 func PostResponseToMaster(verdict runner.SubmitionResult) error {
 	//TODO
-	return errors.New("some error")
+	fmt.Println("verdict from server",verdict)
+	return nil
 }
