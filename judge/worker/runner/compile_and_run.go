@@ -139,7 +139,7 @@ func CompileRunAndTests(runner_parms types.RunnerParamsJson) (SubmitionResult, e
 		verdict, resourses_used := runForSingleTestCase(runner_parms, test_inp_file, test_exp_out_file)
 		FinalResult.Time_ms = max(FinalResult.Time_ms, resourses_used.Time_ms)
 		FinalResult.Mem_usage = max(FinalResult.Mem_usage, resourses_used.Mem_kb)
-		MyLog.Printdev("[Executioner]","test case", test_case_no, "done bro", verdict)
+		MyLog.Printdev("[Executioner]", "test case", test_case_no, "done bro", verdict)
 
 		if verdict != VerdictAccepted {
 			FinalResult.Result = int(verdict)
@@ -173,7 +173,8 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	var buf_err, buf_out bytes.Buffer
 
 	//creating the comand to be run
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(runner_parms.TimeConstrain))
+	time_const_multiplier := 2 // as we can hit the dead line but the program might not run for whole time
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(runner_parms.TimeConstrain * time_const_multiplier))
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, exe_or_interpreter, args...)
@@ -181,32 +182,38 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	cmd.Stdout = &buf_out
 	cmd.Stderr = &buf_err
 
-	var ru_befor syscall.Rusage
-	syscall.Getrusage(syscall.RUSAGE_CHILDREN, &ru_befor)
-	st_time := time.Now()
-
 	//running the comand
-	MyLog.Printdev("singele exec runner","cmd comand being run", cmd.String())
-	if err := cmd.Run(); err != nil {
+	MyLog.Printdev("singele exec runner", "cmd comand being run", cmd.String())
+	if err := cmd.Start(); err != nil {
 		MyLog.Printdev("[exec runtime error] ", err, ctx.Err())
-		if ctx.Err() == context.DeadlineExceeded {
-			return VerdictTLE, ResourcesUsed{
-				Mem_kb:  0,
-				Time_ms: runner_parms.TimeConstrain,
-			}
-		}
 		saveStderrAndStdoutToFile(runner_parms.CodeDir, &buf_out, &buf_err)
 		return VerdictWrongAns, resourses_used
 	}
 
-	var ru_after syscall.Rusage
-	syscall.Getrusage(syscall.RUSAGE_CHILDREN, &ru_after)
-	end_time := time.Now()
+	pid_child := cmd.Process.Pid
+	var status syscall.WaitStatus
+	var rusage syscall.Rusage
 
-	mem_usage := ru_after.Maxrss - ru_befor.Maxrss
-	time_usage := end_time.Sub(st_time).Milliseconds()
+	_, err := syscall.Wait4(pid_child, &status, 0, &rusage)
+	if err != nil {
+		MyLog.Printdev("[exec runtime error] ","failed to wait :", err)
+		saveStderrAndStdoutToFile(runner_parms.CodeDir, &buf_out, &buf_err)
+		return VerdictWrongAns, resourses_used
+	}
+
+	if ctx.Err() == context.DeadlineExceeded {
+		return VerdictTLE, ResourcesUsed{
+			Mem_kb:  0,
+			Time_ms: runner_parms.TimeConstrain,
+		}
+	}
+
+	mem_usage := rusage.Maxrss
+	time_usage_in_kernal := utils.GetTimeInMillSec(rusage.Stime)
+	time_usage_in_user := utils.GetTimeInMillSec(rusage.Utime)
 	resourses_used.Mem_kb = int(mem_usage)
-	resourses_used.Time_ms = int(time_usage)
+	MyLog.Printdev("runstats",time_usage_in_kernal,time_usage_in_user)
+	resourses_used.Time_ms = int(time_usage_in_kernal + time_usage_in_user)
 
 	if mem_usage > int64(runner_parms.MemConstrain) {
 		return VerdictMLE, resourses_used
