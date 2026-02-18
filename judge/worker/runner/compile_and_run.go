@@ -139,7 +139,7 @@ func CompileRunAndTests(runner_parms types.RunnerParamsJson) (SubmitionResult, e
 		verdict, resourses_used := runForSingleTestCase(runner_parms, test_inp_file, test_exp_out_file)
 		FinalResult.Time_ms = max(FinalResult.Time_ms, resourses_used.Time_ms)
 		FinalResult.Mem_usage = max(FinalResult.Mem_usage, resourses_used.Mem_kb)
-		MyLog.Printdev("[Executioner]", "test case", test_case_no, "done bro", verdict)
+		MyLog.Printdev("[Executioner]", "test case", test_case_no, "done bro", verdict,"time : ",resourses_used.Time_ms)
 
 		if verdict != VerdictAccepted {
 			FinalResult.Result = int(verdict)
@@ -212,7 +212,7 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	time_usage_in_kernal := utils.GetTimeInMillSec(rusage.Stime)
 	time_usage_in_user := utils.GetTimeInMillSec(rusage.Utime)
 	resourses_used.Mem_kb = int(mem_usage)
-	MyLog.Printdev("runstats",time_usage_in_kernal,time_usage_in_user)
+	MyLog.Printdev("runstats kernerl time ",time_usage_in_kernal,"user_time",time_usage_in_user)
 	resourses_used.Time_ms = int(time_usage_in_kernal + time_usage_in_user)
 
 	if mem_usage > int64(runner_parms.MemConstrain) {

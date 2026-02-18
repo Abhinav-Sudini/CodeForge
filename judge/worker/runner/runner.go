@@ -88,6 +88,12 @@ func runExecWorkerProcessWithParams(runnerParams types.RunnerParamsJson) error {
 		fmt.Println("[ecec work cerr]",string(t))
 		return err
 	}
+	if runtime.Is_production == false{
+		t,_ := io.ReadAll(&buf_out) 
+		fmt.Println("[ecec work cout]",string(t))
+		t,_ = io.ReadAll(&buf_err) 
+		fmt.Println("[ecec work cerr]",string(t))
+	}
 	return nil
 }
 

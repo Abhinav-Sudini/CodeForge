@@ -3,8 +3,8 @@ package utils
 import "syscall"
 
 
-func GetTimeInMillSec(timeval syscall.Timeval) int64 {
-	return timeval.Nano()/1000
+func GetTimeInMillSec(tv syscall.Timeval) int64 {
+	return int64(tv.Sec)*1e3 + int64(tv.Usec)/1000
 }
 
 

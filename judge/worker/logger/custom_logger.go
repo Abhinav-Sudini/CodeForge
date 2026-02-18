@@ -1,9 +1,12 @@
 package MyLog
 
-import "fmt"
+import (
+	"fmt"
+	"worker/runtime"
+)
 
 
-const is_production = false
+const is_production = runtime.Is_production
 
 var init_done = false
 

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -36,7 +35,7 @@ func create_new_job(stream io.ReadCloser) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(judgeReq)
+	MyLog.Printdev("worker server job create",judgeReq)
 
 	if WorkerMutex.TryLock() == true {
 
