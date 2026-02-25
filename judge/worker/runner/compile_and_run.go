@@ -36,6 +36,7 @@ type SubmitionResult struct {
 	Mem_usage    int    `json:"Mem_usage"`
 	Time_ms      int    `json:"Time_ms"`
 	WA_Test_case int    `json:"WA_Test_case"`
+	Stderr string      `json:"Stderr"`
 	MSG          string `json:"MSG"`
 }
 
@@ -87,12 +88,13 @@ func CompileIfCompilable(cur_runtime string, codeDir string) (bool,error) {
 	cmd.Stderr = &buf_err
 
 	//start compilation
+	MyLog.Printdev("[compl comand]",runtime_conf.CompileComand)
 	if err := cmd.Run(); err != nil {
+		saveStderrAndStdoutToFile(codeDir, &buf_out, &buf_err)
 		switch err.(type){
 		case *exec.ExitError:
 			return false,nil
 		default:
-				saveStderrAndStdoutToFile(codeDir, &buf_out, &buf_err)
 				return false,errors.New("[exec error] compilation failed with error : " + err.Error())
 		}
 	}
@@ -113,12 +115,11 @@ func CompileRunAndTests(runner_parms types.RunnerParamsJson) (SubmitionResult, e
 
 	compile_done,err := CompileIfCompilable(runner_parms.Runtime, runner_parms.CodeDir)
 	if err != nil {
-		FinalResult.Result = int(VerdictCompilationError)
 		return FinalResult, err
 	}
 	if compile_done == false {
 		FinalResult.Result = int(VerdictCompilationError)
-		return FinalResult, err
+		return FinalResult, nil
 	}
 
 	//each test case will be grouped into a directory with

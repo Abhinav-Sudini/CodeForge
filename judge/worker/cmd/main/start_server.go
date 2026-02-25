@@ -7,12 +7,24 @@ import (
 	"strconv"
 
 	"worker/handlers"
+	"worker/utils"
 )
 
 // can be docker or somthing else
 const worker_runtime = "dev"
 
+
+func initRuntimeEnv(){
+	allTasksDir := os.Getenv("QUESTIONS_DIR")
+
+	if ok,_ := utils.DirExists(allTasksDir);ok == false {
+		panic("can not intit worker")
+	}
+}
+
 func runWorker() error {
+
+	initRuntimeEnv()
 
 	http.HandleFunc("/judge/", handlers.Compile_and_judge_handler)
 

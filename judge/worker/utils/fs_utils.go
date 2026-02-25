@@ -104,3 +104,21 @@ func RemoveAllFilesInDir(dir_path string) error {
     }
     return nil
 }
+
+func GetSterrFromFile(path string) string {
+	if ok,err := FileExists(path); err!=nil || ok == false {
+		return ""
+	}
+	f,err := os.Open(path)
+	if err != nil {
+			return ""
+	}
+	defer f.Close()
+
+	stderr,err := io.ReadAll(f)
+	if err!=nil{
+		return ""
+	}
+	
+	return string(stderr)
+}

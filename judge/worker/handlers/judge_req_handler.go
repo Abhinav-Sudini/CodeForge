@@ -69,6 +69,10 @@ func create_new_job(stream io.ReadCloser) error {
 			if err != nil {
 				panic(err.Error())
 			}
+			err = PostWorkerIsFreeReqToMaster()
+			if err != nil {
+				panic(err)	
+			}
 			MyLog.Printdev("server liste for another req")
 
 		}()

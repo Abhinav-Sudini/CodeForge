@@ -73,6 +73,8 @@ func main() {
 	runner_params, err := runner.GetRunnerParams() //params are passed in as json through stdin to the program
 	if err != nil {
 		fmt.Println("[exec error] plz pass in the correct params")
+		fmt.Println("[json error] :",err)
+		os.Exit(1)
 	}
 
 	MyLog.Printdev("exec worker", "[New Job] running the compilation proc")
@@ -92,7 +94,11 @@ func main() {
 
 	//generating the output file
 	verdict.MSG = runner.GenerateResultMSG(verdict)
+	Stderr_file_path := filepath.Join(runner_params.CodeDir, runtime.StdErrorFileName)
+	verdict.Stderr = utils.GetSterrFromFile(Stderr_file_path)
+
 	json_res, err := json.Marshal(verdict)
+
 	if err != nil {
 		fmt.Println("[worker] unable to marshal")
 		panic(err)

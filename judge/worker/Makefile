@@ -16,6 +16,10 @@ runner:
 	go build -o ./test_environment/exec_worker.bin ./cmd/code_runner/code_runner.go
 
 
+.PHONY: prod_bin
+prod_bin:
+	go build -o ./bin/exec_worker.bin ./cmd/code_runner/code_runner.go
+	go build -o ./bin/worker_server.bin ./cmd/main/start_server.go
 
 
 
