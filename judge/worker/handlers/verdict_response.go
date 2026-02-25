@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"fmt"
-	"worker/runner"
+	"worker/types"
 )
 
-func PostResponseToMaster(verdict runner.SubmitionResult) error {
+func PostResponseToMaster(verdict types.JudgeCodeResponse) error {
 	//TODO
 	fmt.Println("verdict from server", verdict)
 	return nil

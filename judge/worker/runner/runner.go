@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"worker/runtime"
 	"worker/types"
+	"worker/utils"
 )
 
 type Runner interface {
@@ -42,7 +43,12 @@ func (run *runner) RunJobAndGetResult(req *types.JudgeCodeRequest) (SubmitionRes
 	codeFileName := runtime.GetCodeFileName(req.Runtime)
 	codeFilePath := filepath.Join(codeFileDir, codeFileName)
 
-	err := os.WriteFile(codeFilePath, []byte(req.Code), 0666)
+	err := utils.RemoveAllFilesInDir(codeFileDir)
+	if err != nil {
+		return SubmitionResult{},err
+	}
+
+	err = os.WriteFile(codeFilePath, []byte(req.Code), 0666)
 	if err != nil {
 		return SubmitionResult{}, err
 	}
@@ -80,6 +86,7 @@ func runExecWorkerProcessWithParams(runnerParams types.RunnerParamsJson) error {
 
 	params_json_bytes, _ := json.Marshal(runnerParams)
 	buf_in.Write(params_json_bytes)
+
 	if err := cmd.Run(); err != nil {
 		t, _ := io.ReadAll(&buf_out)
 		fmt.Println("[ecec work cout]", string(t))

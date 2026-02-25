@@ -58,14 +58,14 @@ func validateParams(runner_parms types.RunnerParamsJson) error {
 	return nil
 }
 
-func CompileIfCompilable(cur_runtime string, codeDir string) error {
+func CompileIfCompilable(cur_runtime string, codeDir string) (bool,error) {
 	runtime_conf, ok := runtime.GetRuntime(cur_runtime)
 	if ok == false {
-		return errors.New("[exec error] runtime does not exist")
+		return false,errors.New("[exec error] runtime does not exist")
 	}
 
 	if len(runtime_conf.CompileComand) == 0 { //no compilation needed
-		return nil
+		return true,nil
 	}
 
 	max_compilation_timeout, _ := strconv.Atoi(os.Getenv("WORKER_MAX_COMPILATION_TIME"))
@@ -79,7 +79,7 @@ func CompileIfCompilable(cur_runtime string, codeDir string) error {
 	var err error
 	cmd.Stdin, err = os.Open(filepath.Join(codeDir, runtime_conf.CodeFileName))
 	if err != nil {
-		return errors.New("[exec error] failed to open code file")
+		return false,errors.New("[exec error] failed to open code file")
 	}
 
 	var buf_err, buf_out bytes.Buffer
@@ -88,11 +88,16 @@ func CompileIfCompilable(cur_runtime string, codeDir string) error {
 
 	//start compilation
 	if err := cmd.Run(); err != nil {
-		saveStderrAndStdoutToFile(codeDir, &buf_out, &buf_err)
-		return errors.New("[exec error] compilation failed with error : " + err.Error())
+		switch err.(type){
+		case *exec.ExitError:
+			return false,nil
+		default:
+				saveStderrAndStdoutToFile(codeDir, &buf_out, &buf_err)
+				return false,errors.New("[exec error] compilation failed with error : " + err.Error())
+		}
 	}
 
-	return nil
+	return true,nil
 
 }
 
@@ -106,8 +111,12 @@ func CompileRunAndTests(runner_parms types.RunnerParamsJson) (SubmitionResult, e
 		return FinalResult, err
 	}
 
-	err := CompileIfCompilable(runner_parms.Runtime, runner_parms.CodeDir)
+	compile_done,err := CompileIfCompilable(runner_parms.Runtime, runner_parms.CodeDir)
 	if err != nil {
+		FinalResult.Result = int(VerdictCompilationError)
+		return FinalResult, err
+	}
+	if compile_done == false {
 		FinalResult.Result = int(VerdictCompilationError)
 		return FinalResult, err
 	}

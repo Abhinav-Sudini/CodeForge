@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"sync"
 
 	MyLog "worker/logger"
@@ -53,11 +54,23 @@ func create_new_job(stream io.ReadCloser) error {
 				MyLog.Print("exec parent", "faile with", err)
 				panic(err)
 			}
-			err = PostResponseToMaster(Result)
+
+			JudgeResult := types.JudgeCodeResponse{
+				JobId: judgeReq.JobId,
+				QuestionId: judgeReq.QuestionId,
+				Result: Result.Result,
+				Time_ms: Result.Time_ms,
+				Mem_usage: Result.Mem_usage,
+				MSG: Result.MSG,
+				WA_Test_case: Result.WA_Test_case,
+				InternalApiKey: os.Getenv("INTERNAL_API_KEY"),
+			}
+			err = PostResponseToMaster(JudgeResult)
 			if err != nil {
 				panic(err.Error())
 			}
 			MyLog.Printdev("server liste for another req")
+
 		}()
 
 	} else {

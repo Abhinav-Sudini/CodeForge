@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -83,4 +84,23 @@ func SaveFileFromBuf(path string, src io.Reader) error {
 		return err
 	}
 	return nil
+}
+
+func RemoveAllFilesInDir(dir_path string) error {
+	d, err := os.Open(dir_path)
+    if err != nil {
+        return err
+    }
+    defer d.Close()
+    names, err := d.Readdirnames(-1)
+    if err != nil {
+        return err
+    }
+    for _, name := range names {
+        err = os.RemoveAll(filepath.Join(dir_path, name))
+        if err != nil {
+            return err
+        }
+    }
+    return nil
 }
