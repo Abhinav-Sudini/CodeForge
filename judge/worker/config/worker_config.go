@@ -1,5 +1,7 @@
 package config
 
+import "os"
+
 // const (
 // 	VerdictAccepted Verdict = iota
 // 	VerdictWrongAns
@@ -10,6 +12,15 @@ package config
 // 	VerdictInternalError
 // 	VerdictBadRequest
 // )
+
+const Max_req_timeout = 5 //s
+
+var marster_ip = os.Getenv("MASTER_IP_ADDR")
+var port = os.Getenv("MASTER_PORT_CF")
+var Master_url = marster_ip + ":" + port
+
+const VerdictApiLocation = "/api/worker/verdict/"
+const WorkerRegisterApiLocation = "/api/worker/register/"
 
 const (
 	MsgOnAccepted       = "Accepted"

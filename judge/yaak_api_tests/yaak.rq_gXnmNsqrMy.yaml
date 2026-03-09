@@ -1,0 +1,28 @@
+type: http_request
+model: http_request
+id: rq_gXnmNsqrMy
+createdAt: 2026-03-09T18:27:12.545793700
+updatedAt: 2026-03-09T18:46:41.226909800
+workspaceId: wk_UWtufSxeDU
+folderId: fl_ihHKmYicdr
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "QuestionId": 1092,
+      "runtime": "c++17",
+      "code": "#include <bits\/stdc++.h>\r\n#include<string>\r\nusing namespace std;\r\n\r\n#define int long long\r\n \r\nsigned main()\r\n{ios_base::sync_with_stdio(false);\r\ncin.tie(NULL);cout.tie(NULL);\r\n \r\n {\r\n \r\n    int n;\r\n    cin>>n;\r\n \r\n    if((((n*(n+1))\/2)&1)==0){\r\n        cout<<\"YES\\n\";\r\n        cout<<n\/2+1<<endl;\r\n        for(int i=1;i<=n\/2+1;i++){\r\n            cout<<i<< \" \";\r\n        }\r\n        cout<<endl<<n\/2<<endl;\r\n        for(int i=n\/2+2;i<=n;i++){\r\n            cout<<i<<\" \";\r\n        }cout<<endl;\r\n    }else{\r\n        cout<<\"NO\\n\";\r\n    }\r\n \r\n }\r\n \r\nreturn 0;\r\n}\r\n"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: inyQFsUqfY
+method: POST
+name: Wa 1092
+sortPriority: 1000.0
+url: localhost:7000/judge/
+urlParameters: []

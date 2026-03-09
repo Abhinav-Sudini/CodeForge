@@ -1,0 +1,28 @@
+type: http_request
+model: http_request
+id: rq_tS5VTBTkYM
+createdAt: 2026-03-09T16:08:45.359977600
+updatedAt: 2026-03-09T18:23:18.285313600
+workspaceId: wk_UWtufSxeDU
+folderId: fl_igWCSZhCGW
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "QuestionId": 1681,
+      "runtime": "c++17",
+      "code": "#include \"bits\/stdc++.h\"\r\nusing namespace std;\r\n\r\n#define int long long\r\n \r\nvoid dfs(map<int,vector<int>>& adj,set<int> &con,int node){\r\n    if(con.count(node)) return;\r\n    con.insert(node);\r\n    for(auto child:adj[node]){\r\n        dfs(adj,con,child);\r\n    }\r\n}\r\n \r\nsigned main()\r\n{ios_base::sync_with_stdio(false);\r\ncin.tie(NULL);cout.tie(NULL);\r\n \r\n{\r\n    \r\n    int n,m;\r\n    cin>>n>>m;\r\n    int u,v;\r\n    map<int,vector<int>> adj;\r\n    for(int i=0;i<m;i++){\r\n        cin>>u>>v;\r\n        adj[u].push_back(v);\r\n    }\r\n    set<int> con_node;\r\n    dfs(adj,con_node,1);\r\n    map<int,int> indeg;\r\n    for(auto &[node,vec]:adj){\r\n        for(auto &child:vec){\r\n            if(con_node.count(node) && con_node.count(child)){\r\n                indeg[child]++;\r\n            }\r\n        }\r\n    }\r\n \r\n    queue<int> qu;\r\n    qu.push(1);\r\n    map<int,int> ways;\r\n    ways[1] = 1;\r\n    int mod = (1e9) + 7;\r\n \r\n    while(qu.size()){\r\n        auto node = qu.front();\r\n        qu.pop();\r\n \r\n        for(auto &child:adj[node]){\r\n            indeg[child]--;\r\n            ways[child]+=ways[node];\r\n            ways[child] %= mod;\r\n            if(indeg[child]==0){\r\n                qu.push(child);\r\n            }\r\n        }\r\n    }\r\n \r\n    cout<<ways[n]<<endl;\r\n \r\n    \r\n}\r\n \r\nreturn 0;\r\n}"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: 0CfY706InJ
+method: POST
+name: test AC code 1681
+sortPriority: 0.0
+url: localhost:7000/judge/
+urlParameters: []

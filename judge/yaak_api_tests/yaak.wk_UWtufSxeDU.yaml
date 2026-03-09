@@ -1,0 +1,15 @@
+type: workspace
+model: workspace
+id: wk_UWtufSxeDU
+createdAt: 2026-03-09T13:51:50.271557700
+updatedAt: 2026-03-09T14:31:50.268533500
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: codeForge
+encryptionKeyChallenge: null
+settingValidateCertificates: true
+settingFollowRedirects: true
+settingRequestTimeout: 0
+settingDnsOverrides: []

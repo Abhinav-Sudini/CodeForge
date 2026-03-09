@@ -105,7 +105,7 @@ func RemoveAllFilesInDir(dir_path string) error {
     return nil
 }
 
-func GetSterrFromFile(path string) string {
+func GetStderrFromFile(path string) string {
 	if ok,err := FileExists(path); err!=nil || ok == false {
 		return ""
 	}

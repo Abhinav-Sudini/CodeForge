@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"worker/handlers"
 	"worker/utils"
@@ -22,9 +23,23 @@ func initRuntimeEnv(){
 	}
 }
 
+func StallTillMasterIsUp(){
+	for{
+		err := handlers.PostWorkerIsFreeReqToMaster()
+		if err == nil {
+			fmt.Println("connected to master")
+			break
+		}
+		fmt.Println("connect to master failes retry..")
+		time.Sleep(time.Second*2)
+	}
+}
+
 func runWorker() error {
 
 	initRuntimeEnv()
+	//function to post worker is free ever x seconds
+	StallTillMasterIsUp()
 
 	http.HandleFunc("/judge/", handlers.Compile_and_judge_handler)
 

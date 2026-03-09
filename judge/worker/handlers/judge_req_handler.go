@@ -5,10 +5,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"sync"
 
 	MyLog "worker/logger"
 	"worker/runner"
+	"worker/runtime"
 	"worker/types"
 	"worker/utils"
 )
@@ -56,22 +58,24 @@ func create_new_job(stream io.ReadCloser) error {
 			}
 
 			JudgeResult := types.JudgeCodeResponse{
-				JobId: judgeReq.JobId,
-				QuestionId: judgeReq.QuestionId,
-				Result: Result.Result,
-				Time_ms: Result.Time_ms,
-				Mem_usage: Result.Mem_usage,
-				MSG: Result.MSG,
-				WA_Test_case: Result.WA_Test_case,
+				JobId:          judgeReq.JobId,
+				QuestionId:     judgeReq.QuestionId,
+				Result:         Result.Result,
+				Time_ms:        Result.Time_ms,
+				Mem_usage:      Result.Mem_usage,
+				MSG:            Result.MSG,
+				WA_Test_case:   Result.WA_Test_case,
+				Stderr:         utils.GetStderrFromFile(filepath.Join(runtime.StdErrorFileName, os.Getenv("CODE_FILE_DIR"))),
 				InternalApiKey: os.Getenv("INTERNAL_API_KEY"),
 			}
+
 			err = PostResponseToMaster(JudgeResult)
 			if err != nil {
 				panic(err.Error())
 			}
 			err = PostWorkerIsFreeReqToMaster()
 			if err != nil {
-				panic(err)	
+				panic(err)
 			}
 			MyLog.Printdev("server liste for another req")
 
@@ -91,6 +95,6 @@ func Compile_and_judge_handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte("job queued"))
 }

@@ -1,6 +1,11 @@
 package types
 
-type JudgeCodeRequest struct {
+type Worker_info struct{
+	Port int `json:"Port"`
+	IP string `json:"IP"`
+}
+
+type Worker_req_json struct {
 	QuestionId     int    `json:"QuestionId"`
 	Runtime        string `json:"runtime"`
 	TimeConstrain  int    `json:"timeConstrain"`
@@ -10,7 +15,7 @@ type JudgeCodeRequest struct {
 	InternalApiKey string `json:"internalApiKey"`
 }
 
-type JudgeCodeResponse struct {
+type Worker_Response_json struct {
 	JobId          int    `json:"jobId"`
 	QuestionId     int    `json:"QuestionId"`
 	Result         int    `json:"Result"`
@@ -20,10 +25,4 @@ type JudgeCodeResponse struct {
 	Stderr         string `json:"Stderr"`
 	MSG            string `json:"MSG"`
 	InternalApiKey string `json:"internalApiKey"`
-}
-
-type JudgeCodeReqVerdict struct {
-	JobId   int    `json:"JobId"`
-	Verdict string `json:"Verdict"`
-	Msg     string `json:"Msg"`
 }
