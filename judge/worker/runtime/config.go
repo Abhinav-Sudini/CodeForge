@@ -8,7 +8,7 @@ type Runtime_conf struct {
 	CodeFileName  string
 }
 
-const Is_production = false
+const Is_production = true
 
 const BinaryFileName = "out.bin"
 const StdErrorFileName = "std.err"

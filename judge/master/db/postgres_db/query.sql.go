@@ -165,6 +165,24 @@ func (q *Queries) CreateVerdictStatsRecord(ctx context.Context, arg CreateVerdic
 	return err
 }
 
+const getSubmissionVerdictAndQuestionid = `-- name: GetSubmissionVerdictAndQuestionid :one
+SELECT verdict,question_id FROM submissions
+WHERE submission_id = $1
+LIMIT 1
+`
+
+type GetSubmissionVerdictAndQuestionidRow struct {
+	Verdict    pgtype.Text
+	QuestionID int32
+}
+
+func (q *Queries) GetSubmissionVerdictAndQuestionid(ctx context.Context, submissionID int32) (GetSubmissionVerdictAndQuestionidRow, error) {
+	row := q.db.QueryRow(ctx, getSubmissionVerdictAndQuestionid, submissionID)
+	var i GetSubmissionVerdictAndQuestionidRow
+	err := row.Scan(&i.Verdict, &i.QuestionID)
+	return i, err
+}
+
 const getTimeAndMemConstraints = `-- name: GetTimeAndMemConstraints :one
 SELECT 
   time_constraint,mem_constraint

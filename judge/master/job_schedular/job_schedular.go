@@ -72,7 +72,7 @@ func (scedular *JobScedular) StartSchedular(ctx context.Context) {
 		case job := <-scedular.Job_queue_channel:
 			select {
 			case worker := <-scedular.Worker_pool_channel:
-				fmt.Printf("sending req question_id: %v and job_id: %v  to worker at %v", job.QuestionId, job.JobId, worker.IP)
+				fmt.Printf("sending req to worker question_id: %v and job_id: %v  to worker at %v", job.QuestionId, job.JobId, worker.IP)
 
 				scedular.AddOnGoingJob(&job, &worker)
 				err := scedular.executeJob(&job, worker)

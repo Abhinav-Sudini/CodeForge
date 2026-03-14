@@ -12,10 +12,6 @@ services:
       - private_net
     depends_on:
     - database
-    volumes:
-      - type: bind
-        source: ./judge/master/bin
-        target: /dev_master
 
   judge.worker.cpp:
     image: codeforge.cpp:latest
@@ -23,14 +19,9 @@ services:
       context: ./judge
       dockerfile: Dockerfiles/cpp/Dockerfile.cpp.prod
     env_file: judge/Dockerfiles/cpp/cpp.env
-    ports:
-      - "8000:8000"
     networks:
       - private_net
     volumes:
-      - type: bind
-        source: ./judge/worker/bin
-        target: /dev_worker
       - type: bind
         source: ./judge/scraped_questions
         target: /questionsDir
@@ -47,7 +38,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - public_net
+      - private_net
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
@@ -64,3 +55,4 @@ networks:
   private_net:
     driver: bridge
     internal: true
+

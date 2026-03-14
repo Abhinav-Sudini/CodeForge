@@ -7,4 +7,4 @@ RUN apt-get update; \
 
 COPY master/bin /codeForge
 
-CMD ["sleep", "infinity"]
+CMD ["/codeForge/master.bin"]

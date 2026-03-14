@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -84,7 +85,7 @@ func create_new_job(stream io.ReadCloser) error {
 			if err != nil {
 				panic(err)
 			}
-			MyLog.Printdev("server liste for another req")
+			fmt.Printf("Job done job_id : %v verdict:%v \n",judgeReq.JobId,JudgeResult.MSG)
 
 		}()
 

@@ -75,6 +75,11 @@ SELECT * FROM verdict_stats
 WHERE submission_id = $1
 LIMIT 1;
 
+-- name: GetSubmissionVerdictAndQuestionid :one
+SELECT verdict,question_id FROM submissions
+WHERE submission_id = $1
+LIMIT 1;
+
 -- name: QuestionExists :one
 SELECT EXISTS (
     SELECT 1

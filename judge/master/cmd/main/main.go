@@ -18,6 +18,7 @@ func main(){
 	go server.Scedular.StartSchedular(context.Background())
 
 	http.HandleFunc("/judge/",server.Handle_new_job_req)
+	http.HandleFunc("/verdict/",server.Get_verdict_handler)
 	http.HandleFunc("/api/worker/register/",server.Register_worker_handler)
 	http.HandleFunc("/api/worker/verdict/",server.Worker_verdict_handler)
 

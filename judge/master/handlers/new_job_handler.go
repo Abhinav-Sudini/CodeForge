@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"master/config"
 	db "master/db/postgres_db"
 	"master/types"
@@ -19,7 +18,7 @@ var AllRuntimes = map[string]bool{
 	"go-1.25": true,
 }
 
-func validateRequest(user_req types.User_req_json, queries *db.Queries) error {
+func validateRequest(user_req types.User_judge_req_json, queries *db.Queries) error {
 	if _, ok := AllRuntimes[user_req.Runtime]; ok != true {
 		return fmt.Errorf("Runtime does not exist :%s", user_req.Runtime)
 	}
@@ -30,21 +29,16 @@ func validateRequest(user_req types.User_req_json, queries *db.Queries) error {
 }
 
 func (server *Server) Handle_new_job_req(w http.ResponseWriter, r *http.Request) {
-	var user_req types.User_req_json
-	json_body, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("could not read body with err : ", err)
-		http.Error(w, "could not read body ", http.StatusInternalServerError)
-		return
-	}
-	defer r.Body.Close()
-
-	err = json.Unmarshal(json_body, &user_req)
+	var user_req types.User_judge_req_json
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&user_req)
 	if err != nil {
 		fmt.Println("could not read json with err : ", err)
 		http.Error(w, "could not read json", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	err = validateRequest(user_req, server.queries)
 	if err != nil {
@@ -63,14 +57,14 @@ func (server *Server) Handle_new_job_req(w http.ResponseWriter, r *http.Request)
 
 	// add job to the queue
 	if err := server.Scedular.ProcessJob(worker_req); err != nil {
-		fmt.Println("[info] job added to pool questionid:",user_req.QuestionId)
+		fmt.Println("[info] job added to pool questionid:", user_req.QuestionId)
 	}
 
 	w.WriteHeader(http.StatusAccepted)
 
 }
 
-func createNewWorkerJobRequest(user_req types.User_req_json, user_id int, queries *db.Queries) (types.Worker_req_json, error) {
+func createNewWorkerJobRequest(user_req types.User_judge_req_json, user_id int, queries *db.Queries) (types.Worker_req_json, error) {
 
 	ctx := context.Background()
 	constraints, err := queries.GetTimeAndMemConstraints(ctx, int32(user_req.QuestionId))

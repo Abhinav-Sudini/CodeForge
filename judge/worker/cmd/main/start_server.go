@@ -13,7 +13,6 @@ import (
 )
 
 // can be docker or somthing else
-const worker_runtime = "dev"
 const PORT = 8000
 
 func initRuntimeEnv() {

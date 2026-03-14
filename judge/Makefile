@@ -7,7 +7,7 @@ build:
 	make prod_bin; \
 	cd ..; \
 
-
+# test containers for dev testing
 .PHONY: cpp_container
 cpp_container:
 	docker run -it --rm \
