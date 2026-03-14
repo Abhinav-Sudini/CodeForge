@@ -11,7 +11,10 @@ import (
 
 func main(){
 
-	server := handlers.NewServer()
+	server,err := handlers.NewServer()
+	if err != nil {
+		panic(err)
+	}
 	go server.Scedular.StartSchedular(context.Background())
 
 	http.HandleFunc("/judge/",server.Handle_new_job_req)

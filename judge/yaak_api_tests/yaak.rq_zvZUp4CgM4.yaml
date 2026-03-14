@@ -1,0 +1,28 @@
+type: http_request
+model: http_request
+id: rq_zvZUp4CgM4
+createdAt: 2026-03-14T06:40:41.989489700
+updatedAt: 2026-03-14T06:41:21.629311
+workspaceId: wk_UWtufSxeDU
+folderId: fl_ihHKmYicdr
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "QuestionId": 1069,
+      "runtime": "c++17",
+      "code": "#include <bits\/stdc++.h>\r\n#include<string>\r\nusing namespace std;\r\n#define int long long\r\n \r\nsigned main()\r\n{ios_base::sync_with_stdio(false);\r\ncin.tie(NULL);cout.tie(NULL);\r\n \r\n {\r\n \r\n    string a;\r\n    cin>>a;\r\n    int maxi=1;\r\n    int pt=0;\r\n    int n= a.length();\r\n \r\n    for(int i=1;i<n;i++){\r\n        if(a[i]!=a[i-1]){\r\n            \r\n            maxi=max(maxi,i-pt);\r\n            pt=i;\r\n        }\r\n \r\n    }\r\n    maxi=max(maxi,n-pt);\r\n \r\n    cout<<maxi+1<<endl;\r\n \r\n }\r\n \r\nreturn 0;\r\n}"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: 2f3JZdmp0q
+method: POST
+name: Wa 1069
+sortPriority: 1000.0
+url: localhost:7000/judge/
+urlParameters: []

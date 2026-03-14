@@ -15,6 +15,7 @@ const createQuestion = `-- name: CreateQuestion :exec
 INSERT INTO questions (
     question_id,
     question_catagory,
+    question_name,
     question_description,
     input_description,
     constraints_description,
@@ -23,13 +24,14 @@ INSERT INTO questions (
     example_inputs,
     example_outputs
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 )
 `
 
 type CreateQuestionParams struct {
 	QuestionID             int32
 	QuestionCatagory       pgtype.Text
+	QuestionName           pgtype.Text
 	QuestionDescription    pgtype.Text
 	InputDescription       pgtype.Text
 	ConstraintsDescription pgtype.Text
@@ -43,6 +45,7 @@ func (q *Queries) CreateQuestion(ctx context.Context, arg CreateQuestionParams) 
 	_, err := q.db.Exec(ctx, createQuestion,
 		arg.QuestionID,
 		arg.QuestionCatagory,
+		arg.QuestionName,
 		arg.QuestionDescription,
 		arg.InputDescription,
 		arg.ConstraintsDescription,
@@ -180,6 +183,41 @@ func (q *Queries) GetTimeAndMemConstraints(ctx context.Context, questionID int32
 	var i GetTimeAndMemConstraintsRow
 	err := row.Scan(&i.TimeConstraint, &i.MemConstraint)
 	return i, err
+}
+
+const getVerdictStats = `-- name: GetVerdictStats :one
+SELECT submission_id, mem_usage, time_ms, not_accepted_test_case, not_accepted_test_case_stdout, stderr FROM verdict_stats
+WHERE submission_id = $1
+LIMIT 1
+`
+
+func (q *Queries) GetVerdictStats(ctx context.Context, submissionID int32) (VerdictStat, error) {
+	row := q.db.QueryRow(ctx, getVerdictStats, submissionID)
+	var i VerdictStat
+	err := row.Scan(
+		&i.SubmissionID,
+		&i.MemUsage,
+		&i.TimeMs,
+		&i.NotAcceptedTestCase,
+		&i.NotAcceptedTestCaseStdout,
+		&i.Stderr,
+	)
+	return i, err
+}
+
+const questionExists = `-- name: QuestionExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM questions
+    WHERE question_id = $1
+)
+`
+
+func (q *Queries) QuestionExists(ctx context.Context, questionID int32) (bool, error) {
+	row := q.db.QueryRow(ctx, questionExists, questionID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const updateVerdictForSubmition = `-- name: UpdateVerdictForSubmition :exec

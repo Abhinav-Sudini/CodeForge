@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	_ "path/filepath"
+	"strconv"
 	"sync"
 
 	MyLog "worker/logger"
 	"worker/runner"
-	"worker/runtime"
+	_ "worker/runtime"
 	"worker/types"
 	"worker/utils"
 )
@@ -23,6 +25,10 @@ func validateJudgeReq(r types.JudgeCodeRequest) error {
 	}
 	if r.TimeConstrain <= 0 || r.MemConstrain <= 0 || r.JobId <= 0 {
 		return errors.New("[json validate] invalid constraints")
+	}
+	allTasksDir := os.Getenv("QUESTIONS_DIR")
+	if ok,err := utils.DirExists(filepath.Join(allTasksDir, strconv.Itoa(r.QuestionId))); err != nil || ok != true {
+		return errors.New("QuestionId does not exist")
 	}
 	return nil
 }
@@ -49,7 +55,7 @@ func create_new_job(stream io.ReadCloser) error {
 			//runing the job and posting the verdict
 			run, err := runner.NewRunner(judgeReq.Runtime)
 			if err != nil {
-				return
+				panic(err)
 			}
 			Result, err := run.RunJobAndGetResult(&judgeReq)
 			if err != nil {
@@ -65,7 +71,8 @@ func create_new_job(stream io.ReadCloser) error {
 				Mem_usage:      Result.Mem_usage,
 				MSG:            Result.MSG,
 				WA_Test_case:   Result.WA_Test_case,
-				Stderr:         utils.GetStderrFromFile(filepath.Join(runtime.StdErrorFileName, os.Getenv("CODE_FILE_DIR"))),
+				WA_Stdout: Result.WA_Stdout,
+				Stderr:         Result.Stderr,
 				InternalApiKey: os.Getenv("INTERNAL_API_KEY"),
 			}
 

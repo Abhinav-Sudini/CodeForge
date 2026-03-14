@@ -15,12 +15,13 @@ import (
 
 func PostResponseToMaster(verdict types.JudgeCodeResponse) error {
 	//TODO
-	master_url := config.Master_url + config.VerdictApiLocation
 	fmt.Println("verdict from server", verdict)
 	job_resp_body, err := json.Marshal(&verdict)
 	if err != nil {
 		return err
 	}
+
+	master_url := config.Master_url + config.VerdictApiLocation
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*config.Max_req_timeout)
 	defer cancel()
 	fmt.Println("tring to sent req to ",master_url)

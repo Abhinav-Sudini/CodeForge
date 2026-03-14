@@ -1,53 +1,118 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"master/config"
-	"master/db"
+	db "master/db/postgres_db"
 	"master/types"
 	"net/http"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (server *Server) Handle_new_job_req(w http.ResponseWriter,r *http.Request){
-	var user_req types.User_req_json 
-	json_body,err := io.ReadAll(r.Body)
+var AllRuntimes = map[string]bool{
+	"c++17":   true,
+	"go-1.25": true,
+}
+
+func validateRequest(user_req types.User_req_json, queries *db.Queries) error {
+	if _, ok := AllRuntimes[user_req.Runtime]; ok != true {
+		return fmt.Errorf("Runtime does not exist :%s", user_req.Runtime)
+	}
+	if ok, err := queries.QuestionExists(context.Background(), int32(user_req.QuestionId)); err != nil || ok == false {
+		return fmt.Errorf("question id does not exist %v", user_req.QuestionId)
+	}
+	return nil
+}
+
+func (server *Server) Handle_new_job_req(w http.ResponseWriter, r *http.Request) {
+	var user_req types.User_req_json
+	json_body, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Println("could not read body with err : ",err)
-		http.Error(w,"could not read body ",http.StatusInternalServerError)
+		fmt.Println("could not read body with err : ", err)
+		http.Error(w, "could not read body ", http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
 
-	err = json.Unmarshal(json_body,&user_req)
+	err = json.Unmarshal(json_body, &user_req)
 	if err != nil {
-		fmt.Println("could not read json with err : ",err)
-		http.Error(w,"could not read json",http.StatusBadRequest)
+		fmt.Println("could not read json with err : ", err)
+		http.Error(w, "could not read json", http.StatusBadRequest)
 		return
 	}
 
-	worker_req := createNewWorkerJobRequest(user_req)
-
-	fmt.Println("adding to queue")
-	server.Scedular.ProcessJob(worker_req)
-	w.WriteHeader(http.StatusAccepted)
-	
-}
-
-func createNewWorkerJobRequest(user_req types.User_req_json) types.Worker_req_json {
-
-	time_limit,mem_limit := db.GetTimeAndMemLimits(user_req.QuestionId)
-	Job_id := get_new_job_id()
-	return types.Worker_req_json{
-		 QuestionId: user_req.QuestionId,
-		 Runtime: user_req.Runtime,
-		 TimeConstrain: time_limit,
-		 MemConstrain: mem_limit,
-		 Code: user_req.Code,
-		 JobId: Job_id,
-		 InternalApiKey: config.InternalApiKey,
+	err = validateRequest(user_req, server.queries)
+	if err != nil {
+		fmt.Println("validation error with err : ", err)
+		http.Error(w, fmt.Sprintf("invalid request with err: %v", err), http.StatusBadRequest)
+		return
 	}
 
+	var user_id = 1
+	worker_req, err := createNewWorkerJobRequest(user_req, user_id, server.queries)
+	if err != nil {
+		fmt.Println("could not create request with err : ", err)
+		http.Error(w, "could not create job", http.StatusInternalServerError)
+		return
+	}
+
+	// add job to the queue
+	if err := server.Scedular.ProcessJob(worker_req); err != nil {
+		fmt.Println("[info] job added to pool questionid:",user_req.QuestionId)
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+
 }
 
+func createNewWorkerJobRequest(user_req types.User_req_json, user_id int, queries *db.Queries) (types.Worker_req_json, error) {
+
+	ctx := context.Background()
+	constraints, err := queries.GetTimeAndMemConstraints(ctx, int32(user_req.QuestionId))
+	if err != nil {
+		return types.Worker_req_json{}, err
+	}
+
+	params := db.CreateSubmissionAndReturnIdParams{
+		UserID:     int32(user_id),
+		QuestionID: int32(user_req.QuestionId),
+		SubmissionTime: pgtype.Timestamp{
+			Time:             time.Now(),
+			InfinityModifier: 0,
+			Valid:            true,
+		},
+		SubmitedCode: pgtype.Text{
+			String: user_req.Code,
+			Valid:  true,
+		},
+		CodeRuntime: pgtype.Text{String: user_req.Runtime,
+			Valid: true,
+		},
+		Verdict: pgtype.Text{
+			String: "queued",
+			Valid:  true,
+		},
+	}
+
+	Job_id, err := queries.CreateSubmissionAndReturnId(ctx, params)
+	fmt.Println("new job id", Job_id)
+	if err != nil {
+		fmt.Println("failed to create submition err:", err)
+		return types.Worker_req_json{}, err
+	}
+
+	return types.Worker_req_json{
+		QuestionId:     user_req.QuestionId,
+		Runtime:        user_req.Runtime,
+		TimeConstrain:  int(constraints.TimeConstraint),
+		MemConstrain:   int(constraints.MemConstraint),
+		Code:           user_req.Code,
+		JobId:          int(Job_id),
+		InternalApiKey: config.InternalApiKey,
+	}, nil
+}

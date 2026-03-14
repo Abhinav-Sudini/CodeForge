@@ -10,4 +10,4 @@ COPY worker/bin /codeForge
 RUN mkdir codeDir; \
   chmod 777 codeDir; 
 
-CMD ["/bin/bash"]
+CMD ["sleep", "infinity"]

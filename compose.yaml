@@ -1,0 +1,64 @@
+services:
+  judge.master:
+    image: codeforge.master:latest
+    build:
+      context: ./judge
+      dockerfile: judge/Dockerfiles/master/Dockerfile
+    env_file: judge/Dockerfiles/master/master.env
+    ports:
+      - "7000:7000"
+    networks:
+      - public_net
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/master/bin
+        target: /dev_master
+
+  judge.worker.cpp:
+    image: codeforge.cpp:latest
+    build:
+      context: ./judge
+      dockerfile: judge/Dockerfiles/cpp/Dockerfile.cpp.prod
+    env_file: judge/Dockerfiles/cpp/cpp.env
+    ports:
+      - "8000:8000"
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/worker/bin
+        target: /dev_worker
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+    depends_on:
+    - judge.master
+
+  database:
+    image: postgres:18-trixie
+    restart: on-failure
+    user: postgres
+    volumes:
+      - db-cluster:/var/lib/postgresql
+    env_file: db/env.dev
+    ports:
+      - "5432:5432"
+    networks:
+      - public_net
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-cluster:
+
+networks:
+  public_net:
+    driver: bridge
+
+  private_net:
+    driver: bridge
+    internal: true

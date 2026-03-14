@@ -23,7 +23,6 @@ type JobScedular struct {
 }
 
 func (scedular *JobScedular) ProcessJob(job types.Worker_req_json) error {
-	fmt.Println("adding job to pool")
 	select {
 	case scedular.Job_queue_channel <- job:
 		return nil
@@ -34,7 +33,6 @@ func (scedular *JobScedular) ProcessJob(job types.Worker_req_json) error {
 
 func (scedular *JobScedular) AddToWorkerPool(worker types.Worker_info) error {
 
-	fmt.Println("adding worker to pool",worker)
 	select {
 	case scedular.Worker_pool_channel <- worker:
 		return nil
@@ -56,32 +54,31 @@ func (scedular *JobScedular) RemoveFromOnGoing(job_id int) error {
 	return nil
 }
 
-func (scedular *JobScedular) AddOnGoingJob(job *types.Worker_req_json,worker *types.Worker_info) {
+func (scedular *JobScedular) AddOnGoingJob(job *types.Worker_req_json, worker *types.Worker_info) {
 	scedular.mutex.Lock()
 	defer scedular.mutex.Unlock()
 
 	scedular.Ongoing_jobs[job.JobId] = types.Running_job_info{
-		Job: *job,
+		Job:             *job,
 		Assigned_worker: *worker,
+		Assigned_time:   time.Now(),
 	}
 }
 
 func (scedular *JobScedular) StartSchedular(ctx context.Context) {
 	for {
 		// if both channels have a job and a worker then run
-		fmt.Println("schedular waiting for a job")
 		select {
 		case job := <-scedular.Job_queue_channel:
 			select {
 			case worker := <-scedular.Worker_pool_channel:
-				fmt.Println("sending req to worker")
+				fmt.Printf("sending req question_id: %v and job_id: %v  to worker at %v", job.QuestionId, job.JobId, worker.IP)
 
-				scedular.AddOnGoingJob(&job,&worker)
+				scedular.AddOnGoingJob(&job, &worker)
 				err := scedular.executeJob(&job, worker)
 				if err != nil {
 					//add job back to the queue
 					scedular.Job_queue_channel <- job
-					scedular.Worker_pool_channel <- worker
 					scedular.RemoveFromOnGoing(job.JobId)
 					fmt.Println("job failed with err: ", err)
 				}

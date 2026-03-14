@@ -1,3 +1,13 @@
+.PHONY: build
+build:
+	cd worker; \
+	make prod_bin; \
+	cd ..; \
+	cd master; \
+	make prod_bin; \
+	cd ..; \
+
+
 .PHONY: cpp_container
 cpp_container:
 	docker run -it --rm \

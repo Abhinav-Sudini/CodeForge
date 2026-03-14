@@ -2,6 +2,7 @@
 INSERT INTO questions (
     question_id,
     question_catagory,
+    question_name,
     question_description,
     input_description,
     constraints_description,
@@ -10,7 +11,7 @@ INSERT INTO questions (
     example_inputs,
     example_outputs
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 );
 
 -- name: CreateUserAndReturnId :one
@@ -68,3 +69,15 @@ FROM questions
 WHERE question_id = $1
 LIMIT 1;
 
+
+-- name: GetVerdictStats :one
+SELECT * FROM verdict_stats
+WHERE submission_id = $1
+LIMIT 1;
+
+-- name: QuestionExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM questions
+    WHERE question_id = $1
+);

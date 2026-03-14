@@ -11,6 +11,7 @@ import (
 type Question struct {
 	QuestionID             int32
 	QuestionCatagory       pgtype.Text
+	QuestionName           pgtype.Text
 	QuestionDescription    pgtype.Text
 	InputDescription       pgtype.Text
 	ConstraintsDescription pgtype.Text

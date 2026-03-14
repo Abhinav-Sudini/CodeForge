@@ -95,7 +95,9 @@ func main() {
 	//generating the output file
 	verdict.MSG = runner.GenerateResultMSG(verdict)
 	Stderr_file_path := filepath.Join(runner_params.CodeDir, runtime.StdErrorFileName)
+	Stdout_file_path := filepath.Join(runner_params.CodeDir, runtime.StdOutFileName)
 	verdict.Stderr = utils.GetStderrFromFile(Stderr_file_path)
+	verdict.WA_Stdout = utils.GetStderrFromFile(Stdout_file_path)
 
 	json_res, err := json.Marshal(verdict)
 
