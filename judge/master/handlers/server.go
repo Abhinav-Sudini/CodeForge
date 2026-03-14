@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"master/config"
 	db "master/db/postgres_db"
 	jobschedular "master/job_schedular"
 
@@ -27,10 +28,18 @@ func NewServer() (*Server,error) {
 	fmt.Println("db connected")
 
 	queries := db.New(db_con)
+
+	var job_chanels = make(map[string]chan(types.Worker_req_json))
+	var worker_chanels = make(map[string]chan(types.Worker_info))
+	for runtime := range config.AllRuntimes {
+		job_chanels[runtime] = make(chan types.Worker_req_json,100)
+		worker_chanels[runtime] = make(chan types.Worker_info,100)
+	}
+
 	return &Server{
 		Scedular: jobschedular.JobScedular{
-			Job_queue_channel:   make(chan types.Worker_req_json,100),
-			Worker_pool_channel: make(chan types.Worker_info,100),
+			Job_queue_channels:   job_chanels,
+			Worker_pool_channels: worker_chanels,
 			Ongoing_jobs:        make(map[int]types.Running_job_info,100),
 		},
 		db_conn: db_con,

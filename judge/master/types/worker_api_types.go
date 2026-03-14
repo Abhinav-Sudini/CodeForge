@@ -3,6 +3,7 @@ package types
 type Worker_info struct {
 	Port int    `json:"Port"`
 	IP   string `json:"IP"`
+	Runtime string `json:"Runtime"`
 }
 
 type Worker_req_json struct {

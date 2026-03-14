@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 	"worker/config"
 	"worker/types"
@@ -46,10 +47,11 @@ func PostWorkerIsFreeReqToMaster() error {
 	// defer cancel()
 	ctx := context.Background()
 
-	json_body := bytes.NewReader([]byte(`{
+	json_body := bytes.NewReader([]byte(fmt.Sprintf(`{
 		"IP": "192.168.1.42",
-		"Port": 8000
-	}`))
+		"Port": 8000,
+		"Runtime": "%s"
+	}`,os.Getenv("WORKER_RUNTIME"))))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, master_url, json_body)
 	if err != nil {
 		fmt.Println(err)

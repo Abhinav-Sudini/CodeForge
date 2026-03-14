@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"master/config"
 	"master/types"
 	"net"
 	"net/http"
@@ -19,6 +20,7 @@ func (server *Server) Register_worker_handler(w http.ResponseWriter,r *http.Requ
 	fmt.Println("new worker added :",worker)
 	err = server.Scedular.AddToWorkerPool(worker)
 	if err != nil {
+		fmt.Println("worker register failed with err: ",err)
 		http.Error(w,err.Error(),http.StatusInternalServerError)
 		return 
 	}
@@ -35,6 +37,9 @@ func getWorkerInfo(r *http.Request) (types.Worker_info,error) {
 		return worker,err
 	}
 	ip,_,_ := net.SplitHostPort(r.RemoteAddr)
+	if _,ok := config.AllRuntimes[worker.Runtime];ok != true {
+		return worker,fmt.Errorf("runtime does not exist")	
+	}
 	worker.IP = ip
 
 	return worker,nil

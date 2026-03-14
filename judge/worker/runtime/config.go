@@ -8,7 +8,7 @@ type Runtime_conf struct {
 	CodeFileName  string
 }
 
-const Is_production = true
+const Is_production = false
 
 const BinaryFileName = "out.bin"
 const StdErrorFileName = "std.err"
@@ -21,9 +21,43 @@ var allRuntimes = map[string]Runtime_conf{
 
 	"c++17": {
 		Runtime:       "c++17",
-		CompileComand: []string{"g++", "-o", BinaryFileName, "Code.cpp"},
+		CompileComand: []string{"g++", "-o", BinaryFileName,"-std=c++17","-static","-DONLINE_JUDGE",
+		"-fno-asm","-lm","-s","-O2", "Code.cpp"},
 		RunComand:     []string{"./out.bin"},
 		CodeFileName:  "Code.cpp",
+	},
+	"c++20": {
+		Runtime:       "c++20",
+		CompileComand: []string{"g++", "-o", BinaryFileName,"-std=c++20","-static","-DONLINE_JUDGE",
+		"-fno-asm","-lm","-s","-O2",  "Code.cpp"},
+		RunComand:     []string{"./out.bin"},
+		CodeFileName:  "Code.cpp",
+	},
+	"c++23": {
+		Runtime:       "c++23",
+		CompileComand: []string{"g++", "-o", BinaryFileName,"-std=c++23","-static","-DONLINE_JUDGE",
+		"-fno-asm","-lm","-s","-O2",  "Code.cpp"},
+		RunComand:     []string{"./out.bin"},
+		CodeFileName:  "Code.cpp",
+	},
+	"gcc-c17": {
+		Runtime:       "gcc-c17",
+		CompileComand: []string{"gcc", "-o", BinaryFileName,"-std=c17","-static","-DONLINE_JUDGE",
+		"-fno-asm","-lm","-s","-O2","Code.c"},
+		RunComand:     []string{"./out.bin"},
+		CodeFileName:  "Code.c",
+	},
+	"python3": {
+		Runtime:       "python3",
+		CompileComand: []string{},
+		RunComand:     []string{"python","Code.py"},
+		CodeFileName:  "Code.py",
+	},
+	"node-25": {
+		Runtime:       "node-25",
+		CompileComand: []string{"node","-c","Code.js"},
+		RunComand:     []string{"node","Code.js"},
+		CodeFileName:  "Code.js",
 	},
 
 	"go 1.25": {

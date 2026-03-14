@@ -1,0 +1,8 @@
+FROM python:3.14-slim-trixie
+
+COPY worker/bin /codeForge
+
+RUN mkdir codeDir; \
+  chmod 777 codeDir; 
+
+CMD ["/codeForge/worker_server.bin"]

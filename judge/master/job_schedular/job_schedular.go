@@ -16,15 +16,15 @@ import (
 )
 
 type JobScedular struct {
-	Job_queue_channel   chan (types.Worker_req_json)
-	Worker_pool_channel chan (types.Worker_info)
-	Ongoing_jobs        map[int]types.Running_job_info // maps job_id to assigned worker
-	mutex               sync.RWMutex
+	Job_queue_channels    map[string]chan (types.Worker_req_json)
+	Worker_pool_channels map[string]chan (types.Worker_info)
+	Ongoing_jobs         map[int]types.Running_job_info // maps job_id to assigned worker
+	mutex                sync.RWMutex
 }
 
 func (scedular *JobScedular) ProcessJob(job types.Worker_req_json) error {
 	select {
-	case scedular.Job_queue_channel <- job:
+	case scedular.Job_queue_channels[job.Runtime] <- job:
 		return nil
 	default:
 		return errors.New("buffer full")
@@ -34,7 +34,7 @@ func (scedular *JobScedular) ProcessJob(job types.Worker_req_json) error {
 func (scedular *JobScedular) AddToWorkerPool(worker types.Worker_info) error {
 
 	select {
-	case scedular.Worker_pool_channel <- worker:
+	case scedular.Worker_pool_channels[worker.Runtime] <- worker:
 		return nil
 	default:
 		return errors.New("buffer full")
@@ -66,28 +66,32 @@ func (scedular *JobScedular) AddOnGoingJob(job *types.Worker_req_json, worker *t
 }
 
 func (scedular *JobScedular) StartSchedular(ctx context.Context) {
-	for {
-		// if both channels have a job and a worker then run
-		select {
-		case job := <-scedular.Job_queue_channel:
-			select {
-			case worker := <-scedular.Worker_pool_channel:
-				fmt.Printf("sending req to worker question_id: %v and job_id: %v  to worker at %v", job.QuestionId, job.JobId, worker.IP)
+	for runtime := range config.AllRuntimes {
+		go func() {
+			for {
+				// if both channels have a job and a worker then run
+				select {
+				case job := <-scedular.Job_queue_channels[runtime]:
+					select {
+					case worker := <-scedular.Worker_pool_channels[runtime]:
+						fmt.Printf("sending req to worker question_id: %v and job_id: %v  to worker at %v \n", job.QuestionId, job.JobId, worker.IP)
 
-				scedular.AddOnGoingJob(&job, &worker)
-				err := scedular.executeJob(&job, worker)
-				if err != nil {
-					//add job back to the queue
-					scedular.Job_queue_channel <- job
-					scedular.RemoveFromOnGoing(job.JobId)
-					fmt.Println("job failed with err: ", err)
+						scedular.AddOnGoingJob(&job, &worker)
+						err := scedular.executeJob(&job, worker)
+						if err != nil {
+							//add job back to the queue
+							scedular.Job_queue_channels[runtime] <- job
+							scedular.RemoveFromOnGoing(job.JobId)
+							fmt.Println("job failed with err: ", err)
+						}
+					case <-ctx.Done():
+						return
+					}
+				case <-ctx.Done():
+					return
 				}
-			case <-ctx.Done():
-				return
 			}
-		case <-ctx.Done():
-			return
-		}
+		}()
 	}
 }
 

@@ -1,8 +1,8 @@
 type: http_request
 model: http_request
-id: rq_cihKVYHa4a
-createdAt: 2026-03-09T18:19:57.650679100
-updatedAt: 2026-03-14T14:42:37.232386900
+id: rq_UToExXWetx
+createdAt: 2026-03-14T14:42:15.496661100
+updatedAt: 2026-03-14T14:42:22.506028600
 workspaceId: wk_UWtufSxeDU
 folderId: fl_igWCSZhCGW
 authentication: {}
@@ -11,7 +11,7 @@ body:
   text: |-
     {
       "QuestionId": 1069,
-      "runtime": "c++17",
+      "runtime": "c++23",
       "code": "#include <bits\/stdc++.h>\r\n#include<string>\r\nusing namespace std;\r\n#define int long long\r\n \r\nsigned main()\r\n{ios_base::sync_with_stdio(false);\r\ncin.tie(NULL);cout.tie(NULL);\r\n \r\n {\r\n \r\n    string a;\r\n    cin>>a;\r\n    int maxi=1;\r\n    int pt=0;\r\n    int n= a.length();\r\n \r\n    for(int i=1;i<n;i++){\r\n        if(a[i]!=a[i-1]){\r\n            \r\n            maxi=max(maxi,i-pt);\r\n            pt=i;\r\n        }\r\n \r\n    }\r\n    maxi=max(maxi,n-pt);\r\n \r\n    cout<<maxi<<endl;\r\n \r\n }\r\n \r\nreturn 0;\r\n}"
     }
 bodyType: application/json
@@ -22,7 +22,7 @@ headers:
   value: application/json
   id: ZXGJDxtjS7
 method: POST
-name: cpp ac 1069
-sortPriority: 1000.0
+name: cpp23 ac 1069
+sortPriority: 1000.001
 url: localhost:7000/judge/
 urlParameters: []

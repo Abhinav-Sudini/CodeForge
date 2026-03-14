@@ -1,0 +1,8 @@
+FROM node:25-trixie-slim
+
+COPY worker/bin /codeForge
+
+RUN mkdir codeDir; \
+  chmod 777 codeDir; 
+
+CMD ["/codeForge/worker_server.bin"]

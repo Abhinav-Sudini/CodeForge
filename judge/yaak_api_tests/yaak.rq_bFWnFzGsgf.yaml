@@ -1,0 +1,28 @@
+type: http_request
+model: http_request
+id: rq_bFWnFzGsgf
+createdAt: 2026-03-14T14:27:06.990488
+updatedAt: 2026-03-14T14:27:46.453245
+workspaceId: wk_UWtufSxeDU
+folderId: fl_cHcQWEXgTv
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "QuestionId": 1069,
+      "runtime": "node-25",
+      "code": "const  = require(\"fs\");\r\n\r\nconst s = fs.readFileSync(0, \"utf8\").trim();\r\n\r\nlet maxLen = 1;\r\nlet curr = 1;\r\n\r\nfor (let i = 1; i < s.length; i++) {\r\n    if (s[i] === s[i - 1]) {\r\n        curr++;\r\n    } else {\r\n        curr = 1;\r\n    }\r\n    if (curr > maxLen) maxLen = curr;\r\n}\r\n\r\nconsole.log(maxLen);"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: CEAVjUhU3t
+method: POST
+name: js ce 1069
+sortPriority: 1000.0
+url: localhost:7000/judge/
+urlParameters: []

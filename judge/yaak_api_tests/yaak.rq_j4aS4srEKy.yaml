@@ -1,0 +1,28 @@
+type: http_request
+model: http_request
+id: rq_j4aS4srEKy
+createdAt: 2026-03-14T14:04:59.516076900
+updatedAt: 2026-03-14T14:07:52.486329700
+workspaceId: wk_UWtufSxeDU
+folderId: fl_igWCSZhCGW
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "QuestionId": 1069,
+      "runtime": "python3",
+      "code": "import sys\r\n\r\ns = sys.stdin.readline().strip()\r\n\r\nmax_len = 1\r\ncurr_len = 1\r\n\r\nfor i in range(1, len(s)):\r\n    if s[i] == s[i-1]:\r\n        curr_len += 1\r\n    else:\r\n        curr_len = 1\r\n    max_len = max(max_len, curr_len)\r\n\r\nprint(max_len)"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: u5Hijxii5v
+method: POST
+name: py ac 1069
+sortPriority: 1000.0
+url: localhost:7000/judge/
+urlParameters: []

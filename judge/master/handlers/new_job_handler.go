@@ -13,13 +13,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-var AllRuntimes = map[string]bool{
-	"c++17":   true,
-	"go-1.25": true,
-}
 
 func validateRequest(user_req types.User_judge_req_json, queries *db.Queries) error {
-	if _, ok := AllRuntimes[user_req.Runtime]; ok != true {
+	if _, ok := config.AllRuntimes[user_req.Runtime]; ok != true {
 		return fmt.Errorf("Runtime does not exist :%s", user_req.Runtime)
 	}
 	if ok, err := queries.QuestionExists(context.Background(), int32(user_req.QuestionId)); err != nil || ok == false {

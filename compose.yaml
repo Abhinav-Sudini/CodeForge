@@ -37,6 +37,102 @@ services:
     depends_on:
     - judge.master
 
+  judge.worker.cpp20:
+    image: codeforge.cpp20:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/cpp20/Dockerfile.cpp.prod
+    env_file: judge/Dockerfiles/cpp20/cpp.env
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/worker/bin
+        target: /dev_worker
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+    depends_on:
+    - judge.master
+
+  judge.worker.cpp23:
+    image: codeforge.cpp23:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/cpp23/Dockerfile.cpp.prod
+    env_file: judge/Dockerfiles/cpp23/cpp.env
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/worker/bin
+        target: /dev_worker
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+    depends_on:
+    - judge.master
+
+  judge.worker.c:
+    image: codeforge.c:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/c/Dockerfile.c.prod
+    env_file: judge/Dockerfiles/c/c.env
+    ports:
+      - "8001:8000"
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/worker/bin
+        target: /dev_worker
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+    depends_on:
+    - judge.master
+
+  judge.worker.python:
+    image: codeforge.python:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/python/Dockerfile.python.prod
+    env_file: judge/Dockerfiles/python/python.env
+    ports:
+      - "8002:8000"
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/worker/bin
+        target: /dev_worker
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+    depends_on:
+    - judge.master
+
+  judge.worker.node:
+    image: codeforge.node:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/node/Dockerfile.node.prod
+    env_file: judge/Dockerfiles/node/node.env
+    ports:
+      - "8003:8000"
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/worker/bin
+        target: /dev_worker
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+    depends_on:
+    - judge.master
+
   database:
     image: postgres:18-trixie
     restart: on-failure
