@@ -28,7 +28,7 @@ func validateJudgeReq(r types.JudgeCodeRequest) error {
 		return errors.New("[json validate] invalid constraints")
 	}
 	allTasksDir := os.Getenv("QUESTIONS_DIR")
-	if ok,err := utils.DirExists(filepath.Join(allTasksDir, strconv.Itoa(r.QuestionId))); err != nil || ok != true {
+	if ok, err := utils.DirExists(filepath.Join(allTasksDir, strconv.Itoa(r.QuestionId))); err != nil || ok != true {
 		return errors.New("QuestionId does not exist")
 	}
 	return nil
@@ -44,7 +44,8 @@ func create_new_job(stream io.ReadCloser) error {
 	if err != nil {
 		return err
 	}
-	MyLog.Printdev("worker server job create", judgeReq)
+
+	MyLog.Printdev("worker server job create", judgeReq.JobId, "runtime ", judgeReq.Runtime)
 
 	if WorkerMutex.TryLock() == true {
 
@@ -52,40 +53,44 @@ func create_new_job(stream io.ReadCloser) error {
 		//runs the code async and post the verdict to the Master
 		//to the url of the master with http
 		go func() {
-			defer WorkerMutex.Unlock()
-			//runing the job and posting the verdict
-			run, err := runner.NewRunner(judgeReq.Runtime)
-			if err != nil {
-				panic(err)
-			}
-			Result, err := run.RunJobAndGetResult(&judgeReq)
-			if err != nil {
-				MyLog.Print("exec parent", "faile with", err)
-				panic(err)
-			}
+			func() { // func created to use defer for the mutex and then call postWorkerIsFreetoMaster call
+				defer WorkerMutex.Unlock()
+				//runing the job and posting the verdict
+				run, err := runner.NewRunner(judgeReq.Runtime)
+				if err != nil {
+					panic(err)
+				}
+				Result, err := run.RunJobAndGetResult(&judgeReq)
+				if err != nil {
+					MyLog.Print("exec parent", "faile with", err)
+					panic(err)
+				}
 
-			JudgeResult := types.JudgeCodeResponse{
-				JobId:          judgeReq.JobId,
-				QuestionId:     judgeReq.QuestionId,
-				Result:         Result.Result,
-				Time_ms:        Result.Time_ms,
-				Mem_usage:      Result.Mem_usage,
-				MSG:            Result.MSG,
-				WA_Test_case:   Result.WA_Test_case,
-				WA_Stdout: Result.WA_Stdout,
-				Stderr:         Result.Stderr,
-				InternalApiKey: os.Getenv("INTERNAL_API_KEY"),
-			}
+				JudgeResult := types.JudgeCodeResponse{
+					JobId:          judgeReq.JobId,
+					QuestionId:     judgeReq.QuestionId,
+					Result:         Result.Result,
+					Time_ms:        Result.Time_ms,
+					Mem_usage:      Result.Mem_usage,
+					MSG:            Result.MSG,
+					WA_Test_case:   Result.WA_Test_case,
+					WA_Stdout:      Result.WA_Stdout,
+					Stderr:         Result.Stderr,
+					InternalApiKey: os.Getenv("INTERNAL_API_KEY"),
+				}
 
-			err = PostResponseToMaster(JudgeResult)
-			if err != nil {
-				panic(err.Error())
-			}
+				err = PostResponseToMaster(JudgeResult)
+				if err != nil {
+					panic(err.Error())
+				}
+
+				fmt.Printf("Job done job_id : %v verdict:%v \n", judgeReq.JobId, JudgeResult.MSG)
+			}()
+
 			err = PostWorkerIsFreeReqToMaster()
 			if err != nil {
 				panic(err)
 			}
-			fmt.Printf("Job done job_id : %v verdict:%v \n",judgeReq.JobId,JudgeResult.MSG)
 
 		}()
 

@@ -71,12 +71,12 @@ func CompileIfCompilable(cur_runtime string, codeDir string) (bool,error) {
 	}
 
 	max_compilation_timeout, _ := strconv.Atoi(os.Getenv("WORKER_MAX_COMPILATION_TIME"))
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(max_compilation_timeout))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(max_compilation_timeout*10))
 	defer cancel()
 
-	comipler_path := runtime_conf.CompileComand[0]
+	compiler_path := runtime_conf.CompileComand[0]
 	args := runtime_conf.CompileComand[1:]
-	cmd := exec.CommandContext(ctx, comipler_path, args...)
+	cmd := exec.CommandContext(ctx, compiler_path, args...)
 
 	var err error
 	cmd.Stdin, err = os.Open(filepath.Join(codeDir, runtime_conf.CodeFileName))
@@ -89,13 +89,15 @@ func CompileIfCompilable(cur_runtime string, codeDir string) (bool,error) {
 	cmd.Stderr = &buf_err
 
 	//start compilation
-	MyLog.Printdev("[compl comand]",runtime_conf.CompileComand)
+	MyLog.Printdev("[compl comand]",compiler_path,args)
 	if err := cmd.Run(); err != nil {
 		saveStderrAndStdoutToFile(codeDir, &buf_out, &buf_err)
-		switch err.(type){
+		switch exitErr := err.(type){
 		case *exec.ExitError:
+			MyLog.Printdev("exec run","exit code : ",exitErr.ExitCode(),"stderr : ",exitErr.Stderr,"err from cmd: ",err.Error())
 			return false,nil
 		default:
+			MyLog.Print("[exec worker compile]","failed with err:",err)
 				return false,errors.New("[exec error] compilation failed with error : " + err.Error())
 		}
 	}
@@ -122,6 +124,7 @@ func CompileRunAndTests(runner_parms types.RunnerParamsJson) (SubmitionResult, e
 		FinalResult.Result = int(VerdictCompilationError)
 		return FinalResult, nil
 	}
+	MyLog.Printdev("exec worker","compilation done")
 
 	//each test case will be grouped into a directory with
 	//the test case number as the name of the dir
@@ -176,36 +179,33 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	exe_or_interpreter := runtime_conf.RunComand[0]
 	args := runtime_conf.RunComand[1:]
 
-	in, err1 := os.Open(test_inp_file)
+	code_inp, err1 := os.ReadFile(test_inp_file)
 	if err1 != nil {
+		MyLog.Print("test case runner","can not read file with err :",err1)
 		return VerdictInternalError, resourses_used
 	}
-	defer in.Close()
 	var buf_err, buf_out bytes.Buffer
 
 	//creating the comand to be run
-	time_const_multiplier := 2 // as we can hit the dead line but the program might not run for whole time
+	time_const_multiplier := 5 // as we can hit the dead line but the program might not run for whole time
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(runner_parms.TimeConstrain*time_const_multiplier))
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, exe_or_interpreter, args...)
-	cmd.Stdin = in
+	cmd.Stdin = bytes.NewBuffer(code_inp)
 	cmd.Stdout = &buf_out
 	cmd.Stderr = &buf_err
 
 	//running the comand
-	MyLog.Printdev("singele exec runner", "cmd comand being run", cmd.String())
+	// MyLog.Printdev("singele exec runner", "cmd comand being run", cmd.String())
 	if err := cmd.Start(); err != nil {
-		MyLog.Printdev("[exec runtime error] ", err, ctx.Err())
+		MyLog.Printdev("[exec runtime error] ","failed starting cmd", err, ctx.Err())
 		saveStderrAndStdoutToFile(runner_parms.CodeDir, &buf_out, &buf_err)
 		return VerdictWrongAns, resourses_used
 	}
 
-	pid_child := cmd.Process.Pid
-	var status syscall.WaitStatus
-	var rusage syscall.Rusage
 
-	_, err := syscall.Wait4(pid_child, &status, 0, &rusage)
+	err := cmd.Wait()
 	if err != nil {
 		MyLog.Printdev("[exec runtime error] ", "failed to wait :", err)
 		saveStderrAndStdoutToFile(runner_parms.CodeDir, &buf_out, &buf_err)
@@ -219,12 +219,14 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 		}
 	}
 
+	rusage := cmd.ProcessState.SysUsage().(*syscall.Rusage)
 	mem_usage := rusage.Maxrss
 	time_usage_in_kernal := utils.GetTimeInMillSec(rusage.Stime)
 	time_usage_in_user := utils.GetTimeInMillSec(rusage.Utime)
 	resourses_used.Mem_kb = int(mem_usage)
-	MyLog.Printdev("runstats kernerl time ", time_usage_in_kernal, "user_time", time_usage_in_user)
 	resourses_used.Time_ms = int(time_usage_in_kernal + time_usage_in_user)
+
+	// MyLog.Printdev("runstats kernerl time ", time_usage_in_kernal, "user_time", time_usage_in_user)
 
 	if mem_usage > int64(runner_parms.MemConstrain) {
 		return VerdictMLE, resourses_used

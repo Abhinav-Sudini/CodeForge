@@ -79,6 +79,10 @@ func (scedular *JobScedular) StartSchedular(ctx context.Context) {
 						scedular.AddOnGoingJob(&job, &worker)
 						err := scedular.executeJob(&job, worker)
 						if err != nil {
+							if _,ok := err.(types.WorkerBusyError); ok==true {
+								fmt.Println("[schedular alloc]","worker to busy err for worker ip:",worker.IP)
+								scedular.Worker_pool_channels[runtime] <- worker
+							}
 							//add job back to the queue
 							scedular.Job_queue_channels[runtime] <- job
 							scedular.RemoveFromOnGoing(job.JobId)
@@ -123,6 +127,10 @@ func sendWorkerJobRequest(job *types.Worker_req_json, worker types.Worker_info) 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return types.WorkerBusyError{}
 	}
 
 	if resp.StatusCode != http.StatusAccepted {

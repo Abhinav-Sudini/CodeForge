@@ -9,8 +9,8 @@ import (
 	"master/types"
 	"net/http"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Verdict int
@@ -36,8 +36,9 @@ func (server *Server) Worker_verdict_handler(w http.ResponseWriter, r *http.Requ
 	job_id := verdict.JobId
 	server.Scedular.RemoveFromOnGoing(job_id)
 
-	err = UpdateSubmitionAndAddVerdictStats(verdict, server.db_conn, server.queries)
+	err = UpdateSubmitionAndAddVerdictStats(verdict, server.db_pool, server.queries)
 	if err != nil {
+		fmt.Println("[worker resp handler] ","update failed with err:",err)
 		http.Error(w,"code 500",http.StatusInternalServerError)
 		return
 	}
@@ -45,7 +46,7 @@ func (server *Server) Worker_verdict_handler(w http.ResponseWriter, r *http.Requ
 	verdict.JobId, verdict.QuestionId,  verdict.MSG, verdict.Time_ms)
 }
 
-func UpdateSubmitionAndAddVerdictStats(Verdict types.Worker_Response_json, db_con *pgx.Conn, q *db.Queries) error {
+func UpdateSubmitionAndAddVerdictStats(Verdict types.Worker_Response_json, db_con *pgxpool.Pool, q *db.Queries) error {
 
 	ctx := context.Background()
 	tx, err := db_con.Begin(ctx)

@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var db_conn *pgx.Conn
+var db_conn *pgxpool.Pool
 var ctx_bgd context.Context
 
 func init_db() {
 
 	fmt.Println("connecting to db")
 	var err error
-	db_conn, err = pgx.Connect(ctx_bgd, os.Getenv("PG_DATABASE_URL"))
+	db_conn, err = pgxpool.New(ctx_bgd, os.Getenv("PG_DATABASE_URL"))
 	if err != nil {
 		fmt.Println("err con", err)
 		panic(err)

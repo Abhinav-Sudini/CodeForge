@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"master/config"
 	db "master/db/postgres_db"
 	"master/types"
@@ -19,7 +20,7 @@ func validateRequest(user_req types.User_judge_req_json, queries *db.Queries) er
 		return fmt.Errorf("Runtime does not exist :%s", user_req.Runtime)
 	}
 	if ok, err := queries.QuestionExists(context.Background(), int32(user_req.QuestionId)); err != nil || ok == false {
-		return fmt.Errorf("question id does not exist %v", user_req.QuestionId)
+		return fmt.Errorf("question id does not exist %v with err :%v", user_req.QuestionId,err)
 	}
 	return nil
 }
@@ -27,14 +28,16 @@ func validateRequest(user_req types.User_judge_req_json, queries *db.Queries) er
 func (server *Server) Handle_new_job_req(w http.ResponseWriter, r *http.Request) {
 	var user_req types.User_judge_req_json
 	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
+
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&user_req)
+	io.Copy(io.Discard, r.Body)
 	if err != nil {
 		fmt.Println("could not read json with err : ", err)
 		http.Error(w, "could not read json", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
 	err = validateRequest(user_req, server.queries)
 	if err != nil {
@@ -53,10 +56,12 @@ func (server *Server) Handle_new_job_req(w http.ResponseWriter, r *http.Request)
 
 	// add job to the queue
 	if err := server.Scedular.ProcessJob(worker_req); err != nil {
-		fmt.Println("[info] job added to pool questionid:", user_req.QuestionId)
+		fmt.Println("[info] job failed to added to pool questionid:", user_req.QuestionId)
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+	w.Write([]byte("ok"))
+	fmt.Println("header wrote for job:",worker_req.JobId)
 
 }
 

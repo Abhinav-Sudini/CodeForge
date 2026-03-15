@@ -28,3 +28,8 @@ type Worker_Response_json struct {
 	MSG            string `json:"MSG"`
 	InternalApiKey string `json:"internalApiKey"`
 }
+
+type WorkerBusyError struct{}
+func (w WorkerBusyError) Error() string {
+	return "worker busy"
+}

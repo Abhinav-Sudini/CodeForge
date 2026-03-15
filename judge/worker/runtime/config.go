@@ -36,7 +36,7 @@ var allRuntimes = map[string]Runtime_conf{
 	"c++23": {
 		Runtime:       "c++23",
 		CompileComand: []string{"g++", "-o", BinaryFileName,"-std=c++23","-static","-DONLINE_JUDGE",
-		"-fno-asm","-lm","-s","-O2",  "Code.cpp"},
+		"-fno-asm","-lm","-s","-O2", "Code.cpp"},
 		RunComand:     []string{"./out.bin"},
 		CodeFileName:  "Code.cpp",
 	},

@@ -15,6 +15,8 @@ func main(){
 	if err != nil {
 		panic(err)
 	}
+	defer server.Close()
+
 	go server.Scedular.StartSchedular(context.Background())
 
 	http.HandleFunc("/judge/",server.Handle_new_job_req)
@@ -24,5 +26,7 @@ func main(){
 
 	listend_add := "0.0.0.0" + ":" + strconv.Itoa(config.Server_Port)
 	fmt.Println("running server at : ",listend_add)
-	http.ListenAndServe(listend_add,nil)
+	if err := http.ListenAndServe(listend_add,nil); err != nil {
+		fmt.Println("master exiting with err :",err)
+	}
 }
