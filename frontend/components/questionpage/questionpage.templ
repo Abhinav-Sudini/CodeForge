@@ -1,6 +1,6 @@
 package questionpage
 
-templ Questionpage(question_id_inp int){
+templ Questionpage(question_id_inp int,question_details_api_url string,get_question_submissions_api string,code_submission_api string, submission_verdict_api string){
 <!DOCTYPE html>
 <html lang="en">
 
@@ -574,10 +574,10 @@ templ Questionpage(question_id_inp int){
         let editor;
         const currentQId = {{ question_id_inp }};
         let Submissions = []
-        let question_details_api_url = "http://127.0.0.1:7000/api/question/" + currentQId + "/"
-        let get_question_submissions_api = "http://127.0.0.1:7000/api/question/submissions/" + currentQId + "/"
-        let code_submission_api = "http://127.0.0.1:7000/api/judge/"
-        let submission_verdict_api = "http://127.0.0.1:7000/api/submissions/"
+        let question_details_api_url = {{ question_details_api_url }} + currentQId + "/"
+        let get_question_submissions_api = {{ get_question_submissions_api }} + currentQId + "/"
+        let code_submission_api = {{ code_submission_api }}
+        let submission_verdict_api = {{ submission_verdict_api }}
 
         const templates = {
             cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // solve here\n    return 0;\n}`,

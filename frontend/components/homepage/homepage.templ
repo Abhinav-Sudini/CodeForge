@@ -1,6 +1,6 @@
 package homepage
 
-templ Homepage(){
+templ Homepage(all_questions_api_url string){
 <html lang="en">
 
 <head>
@@ -760,8 +760,7 @@ templ Homepage(){
         let searchQuery = '';
         let sortMode = 'id';
         let currentPage = 1;
-        let problems_url = "/codeForge/questions/"
-        let question_api_url = "http://127.0.0.1:7000/api/question/"
+        let question_api_url = {{ all_questions_api_url }}
         const PAGE_SIZE = 20;
 
         const catColorMap = {};

@@ -1,0 +1,18 @@
+type: http_request
+model: http_request
+id: rq_kkTRqjhWpR
+createdAt: 2026-03-19T09:41:58.451636500
+updatedAt: 2026-03-19T10:21:44.446675900
+workspaceId: wk_UWtufSxeDU
+folderId: fl_wtUaVB4Kvb
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: localhost:7000/api/question/ Copy
+sortPriority: 1000.0
+url: ${[ base_url ]}/api/question/b
+urlParameters: []
