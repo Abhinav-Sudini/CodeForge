@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+	"worker/config"
 	MyLog "worker/logger"
 	"worker/runtime"
 	"worker/types"
@@ -36,8 +37,8 @@ type SubmitionResult struct {
 	Mem_usage    int    `json:"Mem_usage"`
 	Time_ms      int    `json:"Time_ms"`
 	WA_Test_case int    `json:"WA_Test_case"`
-	WA_Stdout string      `json:"WA_Stdout"`
-	Stderr string      `json:"Stderr"`
+	WA_Stdout    string `json:"WA_Stdout"`
+	Stderr       string `json:"Stderr"`
 	MSG          string `json:"MSG"`
 }
 
@@ -60,14 +61,14 @@ func validateParams(runner_parms types.RunnerParamsJson) error {
 	return nil
 }
 
-func CompileIfCompilable(cur_runtime string, codeDir string) (bool,error) {
+func CompileIfCompilable(cur_runtime string, codeDir string) (bool, error) {
 	runtime_conf, ok := runtime.GetRuntime(cur_runtime)
 	if ok == false {
-		return false,errors.New("[exec error] runtime does not exist")
+		return false, errors.New("[exec error] runtime does not exist")
 	}
 
 	if len(runtime_conf.CompileComand) == 0 { //no compilation needed
-		return true,nil
+		return true, nil
 	}
 
 	max_compilation_timeout, _ := strconv.Atoi(os.Getenv("WORKER_MAX_COMPILATION_TIME"))
@@ -81,7 +82,7 @@ func CompileIfCompilable(cur_runtime string, codeDir string) (bool,error) {
 	var err error
 	cmd.Stdin, err = os.Open(filepath.Join(codeDir, runtime_conf.CodeFileName))
 	if err != nil {
-		return false,errors.New("[exec error] failed to open code file")
+		return false, errors.New("[exec error] failed to open code file")
 	}
 
 	var buf_err, buf_out bytes.Buffer
@@ -89,20 +90,20 @@ func CompileIfCompilable(cur_runtime string, codeDir string) (bool,error) {
 	cmd.Stderr = &buf_err
 
 	//start compilation
-	MyLog.Printdev("[compl comand]",compiler_path,args)
+	MyLog.Printdev("[compl comand]", compiler_path, args)
 	if err := cmd.Run(); err != nil {
 		saveStderrAndStdoutToFile(codeDir, &buf_out, &buf_err)
-		switch exitErr := err.(type){
+		switch exitErr := err.(type) {
 		case *exec.ExitError:
-			MyLog.Printdev("exec run","exit code : ",exitErr.ExitCode(),"stderr : ",exitErr.Stderr,"err from cmd: ",err.Error())
-			return false,nil
+			MyLog.Printdev("exec run", "exit code : ", exitErr.ExitCode(), "stderr : ", exitErr.Stderr, "err from cmd: ", err.Error())
+			return false, nil
 		default:
-			MyLog.Print("[exec worker compile]","failed with err:",err)
-				return false,errors.New("[exec error] compilation failed with error : " + err.Error())
+			MyLog.Print("[exec worker compile]", "failed with err:", err)
+			return false, errors.New("[exec error] compilation failed with error : " + err.Error())
 		}
 	}
 
-	return true,nil
+	return true, nil
 
 }
 
@@ -116,7 +117,7 @@ func CompileRunAndTests(runner_parms types.RunnerParamsJson) (SubmitionResult, e
 		return FinalResult, err
 	}
 
-	compile_done,err := CompileIfCompilable(runner_parms.Runtime, runner_parms.CodeDir)
+	compile_done, err := CompileIfCompilable(runner_parms.Runtime, runner_parms.CodeDir)
 	if err != nil {
 		return FinalResult, err
 	}
@@ -124,7 +125,7 @@ func CompileRunAndTests(runner_parms types.RunnerParamsJson) (SubmitionResult, e
 		FinalResult.Result = int(VerdictCompilationError)
 		return FinalResult, nil
 	}
-	MyLog.Printdev("exec worker","compilation done")
+	MyLog.Printdev("exec worker", "compilation done")
 
 	//each test case will be grouped into a directory with
 	//the test case number as the name of the dir
@@ -181,13 +182,15 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 
 	code_inp, err1 := os.ReadFile(test_inp_file)
 	if err1 != nil {
-		MyLog.Print("test case runner","can not read file with err :",err1)
+		MyLog.Print("test case runner", "can not read file with err :", err1)
 		return VerdictInternalError, resourses_used
 	}
-	var buf_err, buf_out bytes.Buffer
+
+	buf_err := utils.BoundBuffer{N: config.MaxOutputBufferSize}
+	buf_out := utils.BoundBuffer{N: config.MaxOutputBufferSize}
 
 	//creating the comand to be run
-	time_const_multiplier := 5 // as we can hit the dead line but the program might not run for whole time
+	time_const_multiplier := 3 // as we can hit the dead line but the program might not run for whole time
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(runner_parms.TimeConstrain*time_const_multiplier))
 	defer cancel()
 
@@ -197,26 +200,24 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	cmd.Stderr = &buf_err
 
 	//running the comand
-	// MyLog.Printdev("singele exec runner", "cmd comand being run", cmd.String())
+	MyLog.Printdev("singele exec runner", "cmd comand being run", cmd.String())
 	if err := cmd.Start(); err != nil {
-		MyLog.Printdev("[exec runtime error] ","failed starting cmd", err, ctx.Err())
-		saveStderrAndStdoutToFile(runner_parms.CodeDir, &buf_out, &buf_err)
+		MyLog.Print("[exec runtime error] ", "failed starting cmd", err, ctx.Err())
+		saveStderrAndStdoutToFile(runner_parms.CodeDir, &buf_out.Buf, &buf_err.Buf)
 		return VerdictWrongAns, resourses_used
 	}
-
 
 	err := cmd.Wait()
 	if err != nil {
-		MyLog.Printdev("[exec runtime error] ", "failed to wait :", err)
-		saveStderrAndStdoutToFile(runner_parms.CodeDir, &buf_out, &buf_err)
-		return VerdictWrongAns, resourses_used
-	}
-
-	if ctx.Err() == context.DeadlineExceeded {
-		return VerdictTLE, ResourcesUsed{
-			Mem_kb:  0,
-			Time_ms: runner_parms.TimeConstrain,
+		if ctx.Err() == context.DeadlineExceeded {
+			return VerdictTLE, ResourcesUsed{
+				Mem_kb:  0,
+				Time_ms: runner_parms.TimeConstrain,
+			}
 		}
+		MyLog.Printdev("[exec runtime error] ", "failed at wait call :", err)
+		saveStderrAndStdoutToFile(runner_parms.CodeDir, &buf_out.Buf, &buf_err.Buf)
+		return VerdictWrongAns, resourses_used
 	}
 
 	rusage := cmd.ProcessState.SysUsage().(*syscall.Rusage)
@@ -226,7 +227,13 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	resourses_used.Mem_kb = int(mem_usage)
 	resourses_used.Time_ms = int(time_usage_in_kernal + time_usage_in_user)
 
-	// MyLog.Printdev("runstats kernerl time ", time_usage_in_kernal, "user_time", time_usage_in_user)
+	if resourses_used.Time_ms > runner_parms.TimeConstrain {
+		return VerdictTLE, ResourcesUsed{
+			Mem_kb:  0,
+			Time_ms: resourses_used.Time_ms,
+		}
+	}
+	MyLog.Printdev("runstats kernerl time ", time_usage_in_kernal, "user_time", time_usage_in_user)
 
 	if mem_usage > int64(runner_parms.MemConstrain) {
 		return VerdictMLE, resourses_used
@@ -238,11 +245,13 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	}
 
 	// fmt.Println("out : ", buf_out.String())
-	buf_out_copy := append([]byte(nil), buf_out.Bytes()...)
-	buf_out = *bytes.NewBuffer(buf_out_copy)
-	output_same := OutputJudge(exp_output, &buf_out)
+	// buf_out_copy := append([]byte(nil), buf_out.Buf.Bytes()...)
+	// buf_out = *bytes.NewBuffer(buf_out_copy)
+	truncated_stdout := buf_out.Buf.Bytes()[:min(len(buf_out.Buf.Bytes()), 2000)]
+	truncated_stderr := buf_err.Buf.Bytes()[:min(len(buf_err.Buf.Bytes()), 2000)]
+	output_same := OutputJudge(exp_output, &buf_out.Buf)
 	if output_same == false {
-		saveStderrAndStdoutToFile(runner_parms.CodeDir, bytes.NewBuffer(buf_out_copy), &buf_err)
+		saveStderrAndStdoutToFile(runner_parms.CodeDir, bytes.NewBuffer(truncated_stdout), bytes.NewBuffer(truncated_stderr))
 		return VerdictWrongAns, resourses_used
 	}
 

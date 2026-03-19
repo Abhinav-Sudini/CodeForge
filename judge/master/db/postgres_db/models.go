@@ -10,10 +10,11 @@ import (
 
 type Question struct {
 	QuestionID             int32
-	QuestionCatagory       pgtype.Text
+	QuestionCategory       pgtype.Text
 	QuestionName           pgtype.Text
 	QuestionDescription    pgtype.Text
 	InputDescription       pgtype.Text
+	OutputDescription      pgtype.Text
 	ConstraintsDescription pgtype.Text
 	TimeConstraint         int32
 	MemConstraint          int32

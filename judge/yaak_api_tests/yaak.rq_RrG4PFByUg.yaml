@@ -1,0 +1,26 @@
+type: http_request
+model: http_request
+id: rq_RrG4PFByUg
+createdAt: 2026-03-16T12:41:39.710951400
+updatedAt: 2026-03-18T19:14:11.354635800
+workspaceId: wk_UWtufSxeDU
+folderId: fl_4ijwnnLo9W
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "QuestionId": 3138
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: 02mkFrQCS6
+method: POST
+name: ''
+sortPriority: 0.0
+url: localhost:7000/api/question/1068/
+urlParameters: []

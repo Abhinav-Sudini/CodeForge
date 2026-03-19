@@ -14,7 +14,7 @@ import (
 const createQuestion = `-- name: CreateQuestion :exec
 INSERT INTO questions (
     question_id,
-    question_catagory,
+    question_category,
     question_name,
     question_description,
     input_description,
@@ -30,7 +30,7 @@ INSERT INTO questions (
 
 type CreateQuestionParams struct {
 	QuestionID             int32
-	QuestionCatagory       pgtype.Text
+	QuestionCategory       pgtype.Text
 	QuestionName           pgtype.Text
 	QuestionDescription    pgtype.Text
 	InputDescription       pgtype.Text
@@ -44,7 +44,7 @@ type CreateQuestionParams struct {
 func (q *Queries) CreateQuestion(ctx context.Context, arg CreateQuestionParams) error {
 	_, err := q.db.Exec(ctx, createQuestion,
 		arg.QuestionID,
-		arg.QuestionCatagory,
+		arg.QuestionCategory,
 		arg.QuestionName,
 		arg.QuestionDescription,
 		arg.InputDescription,
@@ -163,6 +163,165 @@ func (q *Queries) CreateVerdictStatsRecord(ctx context.Context, arg CreateVerdic
 		arg.Stderr,
 	)
 	return err
+}
+
+const getAllQuestionsMinimalDetails = `-- name: GetAllQuestionsMinimalDetails :many
+SELECT 
+  question_id,
+  question_name,
+  question_category
+FROM questions
+`
+
+type GetAllQuestionsMinimalDetailsRow struct {
+	QuestionID       int32
+	QuestionName     pgtype.Text
+	QuestionCategory pgtype.Text
+}
+
+func (q *Queries) GetAllQuestionsMinimalDetails(ctx context.Context) ([]GetAllQuestionsMinimalDetailsRow, error) {
+	rows, err := q.db.Query(ctx, getAllQuestionsMinimalDetails)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllQuestionsMinimalDetailsRow
+	for rows.Next() {
+		var i GetAllQuestionsMinimalDetailsRow
+		if err := rows.Scan(&i.QuestionID, &i.QuestionName, &i.QuestionCategory); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllSubmissionOfQuestion = `-- name: GetAllSubmissionOfQuestion :many
+SELECT 
+s.submission_id,
+s.question_id,
+s.verdict,
+v.mem_usage,
+v.time_ms, v.not_accepted_test_case, v.not_accepted_test_case_stdout, v.stderr, s.submission_time
+FROM submissions s 
+LEFT JOIN verdict_stats v ON s.submission_id = v.submission_id
+WHERE s.question_id = $1 AND s.user_id = $2
+`
+
+type GetAllSubmissionOfQuestionParams struct {
+	QuestionID int32
+	UserID     int32
+}
+
+type GetAllSubmissionOfQuestionRow struct {
+	SubmissionID              int32
+	QuestionID                int32
+	Verdict                   pgtype.Text
+	MemUsage                  pgtype.Int4
+	TimeMs                    pgtype.Int4
+	NotAcceptedTestCase       pgtype.Int4
+	NotAcceptedTestCaseStdout pgtype.Text
+	Stderr                    pgtype.Text
+	SubmissionTime            pgtype.Timestamp
+}
+
+func (q *Queries) GetAllSubmissionOfQuestion(ctx context.Context, arg GetAllSubmissionOfQuestionParams) ([]GetAllSubmissionOfQuestionRow, error) {
+	rows, err := q.db.Query(ctx, getAllSubmissionOfQuestion, arg.QuestionID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllSubmissionOfQuestionRow
+	for rows.Next() {
+		var i GetAllSubmissionOfQuestionRow
+		if err := rows.Scan(
+			&i.SubmissionID,
+			&i.QuestionID,
+			&i.Verdict,
+			&i.MemUsage,
+			&i.TimeMs,
+			&i.NotAcceptedTestCase,
+			&i.NotAcceptedTestCaseStdout,
+			&i.Stderr,
+			&i.SubmissionTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getQuestion = `-- name: GetQuestion :one
+SELECT question_id, question_category, question_name, question_description, input_description, output_description, constraints_description, time_constraint, mem_constraint, example_inputs, example_outputs
+FROM questions 
+WHERE question_id = $1
+`
+
+func (q *Queries) GetQuestion(ctx context.Context, questionID int32) (Question, error) {
+	row := q.db.QueryRow(ctx, getQuestion, questionID)
+	var i Question
+	err := row.Scan(
+		&i.QuestionID,
+		&i.QuestionCategory,
+		&i.QuestionName,
+		&i.QuestionDescription,
+		&i.InputDescription,
+		&i.OutputDescription,
+		&i.ConstraintsDescription,
+		&i.TimeConstraint,
+		&i.MemConstraint,
+		&i.ExampleInputs,
+		&i.ExampleOutputs,
+	)
+	return i, err
+}
+
+const getSubmissionVerdict = `-- name: GetSubmissionVerdict :one
+SELECT 
+s.submission_id,
+s.question_id,
+s.verdict,
+v.mem_usage,
+v.time_ms, v.not_accepted_test_case, v.not_accepted_test_case_stdout, v.stderr, s.submission_time
+FROM submissions s 
+LEFT JOIN verdict_stats v ON s.submission_id = v.submission_id
+WHERE s.submission_id = $1
+`
+
+type GetSubmissionVerdictRow struct {
+	SubmissionID              int32
+	QuestionID                int32
+	Verdict                   pgtype.Text
+	MemUsage                  pgtype.Int4
+	TimeMs                    pgtype.Int4
+	NotAcceptedTestCase       pgtype.Int4
+	NotAcceptedTestCaseStdout pgtype.Text
+	Stderr                    pgtype.Text
+	SubmissionTime            pgtype.Timestamp
+}
+
+func (q *Queries) GetSubmissionVerdict(ctx context.Context, submissionID int32) (GetSubmissionVerdictRow, error) {
+	row := q.db.QueryRow(ctx, getSubmissionVerdict, submissionID)
+	var i GetSubmissionVerdictRow
+	err := row.Scan(
+		&i.SubmissionID,
+		&i.QuestionID,
+		&i.Verdict,
+		&i.MemUsage,
+		&i.TimeMs,
+		&i.NotAcceptedTestCase,
+		&i.NotAcceptedTestCaseStdout,
+		&i.Stderr,
+		&i.SubmissionTime,
+	)
+	return i, err
 }
 
 const getSubmissionVerdictAndQuestionid = `-- name: GetSubmissionVerdictAndQuestionid :one

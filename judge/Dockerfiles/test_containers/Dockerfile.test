@@ -1,0 +1,13 @@
+FROM debian:trixie
+
+RUN apt-get update; \
+    apt-get install -y --no-install-recommends g++ libc6-dev ; \
+    apt clean; \
+    rm -rf /var/lib/apt/lists/* ; 
+
+COPY worker/bin /codeForge
+
+RUN mkdir codeDir; \
+  chmod 777 codeDir; 
+
+CMD ["/bin/bash"]

@@ -2,16 +2,13 @@ type: http_request
 model: http_request
 id: rq_ZPXczc9Ad8
 createdAt: 2026-03-14T11:17:19.413567900
-updatedAt: 2026-03-14T17:23:01.939093600
+updatedAt: 2026-03-18T11:40:10.667492
 workspaceId: wk_UWtufSxeDU
 folderId: fl_fap2rRiW9r
 authentication: {}
 authenticationType: null
 body:
-  text: |-
-    {
-      "submission_id": 187
-    }
+  text: ''
 bodyType: application/json
 description: ''
 headers:
@@ -22,5 +19,5 @@ headers:
 method: POST
 name: localhost:7000/verdict/
 sortPriority: 0.0
-url: localhost:7000/verdict/
+url: localhost:7000/api/submissions/896/
 urlParameters: []

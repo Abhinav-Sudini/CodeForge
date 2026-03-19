@@ -40,3 +40,13 @@ master_it_dev:
 		--env-file Dockerfiles/master/master.env \
 		--mount type=bind,source=./master/bin,target=/dev_master \
 		codeforge.master:latest; 
+
+.PHONY: it_test_dev
+it_test_dev:
+	docker build -t codeforge.test -f Dockerfiles/test_containers/Dockerfile.test . ; \
+	docker run -it --rm \
+		-p 8000:8000 \
+		--env-file Dockerfiles/test_containers/test.env \
+		--mount type=bind,source=./scraped_questions,target=/questionsDir \
+		--mount type=bind,source=./worker/bin,target=/dev_work \
+		codeforge.test:latest; 

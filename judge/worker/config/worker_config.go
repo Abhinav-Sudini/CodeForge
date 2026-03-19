@@ -14,6 +14,7 @@ import "os"
 // )
 
 const Max_req_timeout = 5 //s
+const MaxOutputBufferSize = 50<<20
 
 var marster_ip = os.Getenv("MASTER_IP_ADDR")
 var port = os.Getenv("MASTER_PORT_CF")

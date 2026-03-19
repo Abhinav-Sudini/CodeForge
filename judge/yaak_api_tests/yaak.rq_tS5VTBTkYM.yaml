@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_tS5VTBTkYM
 createdAt: 2026-03-09T16:08:45.359977600
-updatedAt: 2026-03-14T12:08:37.014457700
+updatedAt: 2026-03-16T13:29:21.192783800
 workspaceId: wk_UWtufSxeDU
 folderId: fl_igWCSZhCGW
 authentication: {}
@@ -22,7 +22,7 @@ headers:
   value: application/json
   id: 0CfY706InJ
 method: POST
-name: test AC code 1681
+name: cpp17 ac 1681
 sortPriority: 0.0
-url: localhost:7000/judge/
+url: localhost:7000/api/judge/
 urlParameters: []

@@ -5,4 +5,4 @@ RUN apt-get update; \
     apt clean; \
     rm -rf /var/lib/apt/lists/* ; 
 
-CMD ["/bin/bash"]
+CMD ["sleep","infinity"]

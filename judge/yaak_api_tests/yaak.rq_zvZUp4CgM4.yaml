@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_zvZUp4CgM4
 createdAt: 2026-03-14T06:40:41.989489700
-updatedAt: 2026-03-14T13:32:08.899797700
+updatedAt: 2026-03-16T13:29:15.182665200
 workspaceId: wk_UWtufSxeDU
 folderId: fl_ihHKmYicdr
 authentication: {}
@@ -24,5 +24,5 @@ headers:
 method: POST
 name: Wa 1069
 sortPriority: 2000.0
-url: localhost:7000/judge/
+url: localhost:7000/api/judge/
 urlParameters: []

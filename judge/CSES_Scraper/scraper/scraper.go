@@ -12,7 +12,7 @@ import (
 
 const cses_link = "https://cses.fi"
 const cses_task_url = "https://cses.fi/problemset/list/"
-const php_session_key = "51aee256bd3e1128bef3c78e8aa0cd01ad3289af" // i am to lazy to create a .env
+const php_session_key = "2721a4a7d269f99e05f819a3a57310346319ee6c" // i am to lazy to create a .env
 
 type Task struct {
 	TaskName string `json:"TaskName"`

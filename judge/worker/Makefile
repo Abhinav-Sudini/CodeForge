@@ -42,7 +42,6 @@ it_run_docker_dev:
 	docker run \
 		--mount type=bind,source=./test_environment,target=/codeForge \
 		-p 8000:8000 \
-		--network isolated_net \
 		-it --rm --env-file worker.env \
 		worker_runtime:dev /bin/bash
 

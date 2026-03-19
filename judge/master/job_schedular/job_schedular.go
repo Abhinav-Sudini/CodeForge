@@ -8,17 +8,21 @@ import (
 	"fmt"
 	"io"
 	"master/config"
+	db "master/db/postgres_db"
 	"master/types"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type JobScedular struct {
-	Job_queue_channels    map[string]chan (types.Worker_req_json)
+	Job_queue_channels   map[string]chan (types.Worker_req_json)
 	Worker_pool_channels map[string]chan (types.Worker_info)
 	Ongoing_jobs         map[int]types.Running_job_info // maps job_id to assigned worker
+	Queries              *db.Queries
 	mutex                sync.RWMutex
 }
 
@@ -74,13 +78,14 @@ func (scedular *JobScedular) StartSchedular(ctx context.Context) {
 				case job := <-scedular.Job_queue_channels[runtime]:
 					select {
 					case worker := <-scedular.Worker_pool_channels[runtime]:
+
 						fmt.Printf("sending req to worker question_id: %v and job_id: %v  to worker at %v \n", job.QuestionId, job.JobId, worker.IP)
 
 						scedular.AddOnGoingJob(&job, &worker)
 						err := scedular.executeJob(&job, worker)
 						if err != nil {
-							if _,ok := err.(types.WorkerBusyError); ok==true {
-								fmt.Println("[schedular alloc]","worker to busy err for worker ip:",worker.IP)
+							if _, ok := err.(types.WorkerBusyError); ok == true {
+								fmt.Println("[schedular alloc]", "worker to busy err for worker ip:", worker.IP)
 								scedular.Worker_pool_channels[runtime] <- worker
 							}
 							//add job back to the queue
@@ -104,6 +109,16 @@ func (scheduler *JobScedular) executeJob(job *types.Worker_req_json, worker type
 		return err
 	}
 
+	params := db.UpdateVerdictForSubmitionParams{
+		SubmissionID: int32(job.JobId),
+		Verdict: pgtype.Text{
+			String: "Running",
+			Valid:  true,
+		},
+	}
+	// no need to handle the error is updating unsuccessful
+	_ = scheduler.Queries.UpdateVerdictForSubmition(context.Background(), params)
+	
 	//worker will send the verdict to /worker/api when the request is done
 	//so return
 	return nil

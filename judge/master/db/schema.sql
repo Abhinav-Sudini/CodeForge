@@ -11,10 +11,11 @@ CREATE TABLE users (
 
 CREATE TABLE questions (
     question_id INTEGER PRIMARY KEY,
-    question_catagory TEXT,
+    question_category TEXT,
     question_name TEXT,
     question_description TEXT,
     input_description TEXT,
+    output_description TEXT,
     constraints_description TEXT,
     time_constraint INTEGER NOT NULL,
     mem_constraint INTEGER NOT NULL,

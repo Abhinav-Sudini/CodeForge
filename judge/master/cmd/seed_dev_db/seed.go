@@ -65,7 +65,7 @@ func seed_user() error {
 func seed_questions() error {
 	seed := db.CreateQuestionParams{
 		QuestionID: 1681,
-		QuestionCatagory: pgtype.Text{
+		QuestionCategory: pgtype.Text{
 			String: "arrays",
 			Valid:  true,
 		},
@@ -96,7 +96,7 @@ func seed_questions() error {
 	}
 	seed2 := db.CreateQuestionParams{
 		QuestionID: 1069,
-		QuestionCatagory: pgtype.Text{
+		QuestionCategory: pgtype.Text{
 			String: "arrays",
 			Valid:  true,
 		},

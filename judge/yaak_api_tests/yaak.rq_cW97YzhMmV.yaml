@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_cW97YzhMmV
 createdAt: 2026-03-14T13:30:28.089180800
-updatedAt: 2026-03-14T13:33:42.132756500
+updatedAt: 2026-03-16T13:28:50.971703200
 workspaceId: wk_UWtufSxeDU
 folderId: fl_cHcQWEXgTv
 authentication: {}
@@ -12,7 +12,7 @@ body:
     {
       "QuestionId": 1069,
       "runtime": "gcc-c17",
-      "code": "#include <stdio.h>\r\n\r\nint main() {\r\n    printf(\"Hello, World!\\n\");\r\n    return 0;\r\n}\r\n"
+      "code": "#include <stdio>\r\n\r\nint main() {\r\n    printf(\"Hello, World!\\n\");\r\n    return 0;\r\n}\r\n"
     }
 bodyType: application/json
 description: ''
@@ -24,5 +24,5 @@ headers:
 method: POST
 name: C CE 1069
 sortPriority: 1000.0
-url: localhost:7000/judge/
+url: localhost:7000/api/judge/
 urlParameters: []

@@ -1,76 +1,49 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
 	"master/types"
+	"master/utils"
 	"net/http"
-
-	"github.com/jackc/pgx/v5"
+	"strconv"
 )
 
-func (server *Server) Get_verdict_handler(w http.ResponseWriter, r *http.Request) {
-	var user_req types.Submission_verdict_req_json
-	json_body, err := io.ReadAll(r.Body)
+func (s *Server) Get_submission_verdict_handler(w http.ResponseWriter, r *http.Request) {
+	submission_id, err := strconv.Atoi(r.PathValue("submission_id"))
 	if err != nil {
-		fmt.Println("could not read body with err : ", err)
-		http.Error(w, "could not read body ", http.StatusInternalServerError)
-		return
-	}
-	defer r.Body.Close()
-
-	err = json.Unmarshal(json_body, &user_req)
-	if err != nil {
-		fmt.Println("could not read json with err : ", err)
-		http.Error(w, "could not read json", http.StatusBadRequest)
+		http.Error(w, "no submissions_id pathvalue", http.StatusBadRequest)
 		return
 	}
 
-	verdict,err := server.queries.GetSubmissionVerdictAndQuestionid(context.Background(),int32(user_req.Submission_id))
+	submission, err := s.queries.GetSubmissionVerdict(r.Context(), int32(submission_id))
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			http.Error(w, "can not find submission", http.StatusBadRequest)
-			return
-		}else{
-			fmt.Println("querie failed with err: ",err)
-			http.Error(w,"failed getting submission",http.StatusInternalServerError)
-			return
-		}
+		http.Error(w, "failed to get submission", http.StatusInternalServerError)
+		return
+	}
+
+	q_stdin, q_stdout := utils.GetTestCaseStdinStdout(int(submission.QuestionID), int(submission.NotAcceptedTestCase.Int32))
+
+	return_struct := types.Submission_verdict_resp_json{
+		Submission_id:   int(submission.SubmissionID),
+		QuestionId:      int(submission.QuestionID),
+		Verdict:         submission.Verdict.String,
+		Time_ms:         int(submission.TimeMs.Int32),
+		Mem_usage:       int(submission.MemUsage.Int32),
+		WA_Test_case:    int(submission.NotAcceptedTestCase.Int32),
+		WA_Stdin:        string(q_stdin),
+		Required_Stdout: string(q_stdout),
+		WA_Stdout:       submission.NotAcceptedTestCaseStdout.String,
+		Stderr:          submission.Stderr.String,
+		SubmissionTime:  submission.SubmissionTime.Time,
 	}
 
 
-	verdict_stats, err := server.queries.GetVerdictStats(context.Background(), int32(user_req.Submission_id))
+	json_resp, err := json.Marshal(return_struct)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			http.Error(w, "can not find submission", http.StatusBadRequest)
-			return
-		}else{
-			fmt.Println("querie failed with err: ",err)
-			http.Error(w,"failed getting submission",http.StatusInternalServerError)
-			return
-		}
+		http.Error(w, "failed to get submission", http.StatusInternalServerError)
+		return
 	}
 
-	response := types.Submission_verdict_resp_json{
-		Submission_id: int(verdict_stats.SubmissionID),
-		QuestionId: int(verdict.QuestionID),
-		Verdict: verdict.Verdict.String,
-		Mem_usage: int(verdict_stats.MemUsage),
-		Time_ms: int(verdict_stats.TimeMs),
-		WA_Test_case: int(verdict_stats.NotAcceptedTestCase.Int32),
-		WA_Stdout: verdict_stats.NotAcceptedTestCaseStdout.String,
-		Stderr: verdict_stats.Stderr.String,
-	}
-	
-	json_resp,err := json.Marshal(response)
-	if err != nil {
-		fmt.Println("json parse failed err: ",err)
-			http.Error(w,"failed get response",http.StatusInternalServerError)
-			return
-	}
-	
+	w.WriteHeader(http.StatusOK)
 	w.Write(json_resp)
 }

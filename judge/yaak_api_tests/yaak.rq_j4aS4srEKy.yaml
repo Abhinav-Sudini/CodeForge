@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_j4aS4srEKy
 createdAt: 2026-03-14T14:04:59.516076900
-updatedAt: 2026-03-14T14:07:52.486329700
+updatedAt: 2026-03-16T13:29:26.936592
 workspaceId: wk_UWtufSxeDU
 folderId: fl_igWCSZhCGW
 authentication: {}
@@ -24,5 +24,5 @@ headers:
 method: POST
 name: py ac 1069
 sortPriority: 1000.0
-url: localhost:7000/judge/
+url: localhost:7000/api/judge/
 urlParameters: []

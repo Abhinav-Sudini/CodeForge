@@ -59,10 +59,16 @@ func (server *Server) Handle_new_job_req(w http.ResponseWriter, r *http.Request)
 		fmt.Println("[info] job failed to added to pool questionid:", user_req.QuestionId)
 	}
 
+	resp := types.User_judge_resp_json{
+		Verdict: "queued",
+		Submission_id: worker_req.JobId,
+	}
+	resp_json,err := json.Marshal(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 	w.WriteHeader(http.StatusAccepted)
-	w.Write([]byte("ok"))
-	fmt.Println("header wrote for job:",worker_req.JobId)
-
+	w.Write(resp_json)
 }
 
 func createNewWorkerJobRequest(user_req types.User_judge_req_json, user_id int, queries *db.Queries) (types.Worker_req_json, error) {
