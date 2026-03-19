@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeSphere | Explore Problems</title>
+    <!-- Tailwind CSS for rapid, modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0a0a0a',
+                            surface: '#171717',
+                            border: '#262626',
+                            hover: '#262626'
+                        },
+                        brand: '#6effc8' // LeetCode-esque orange
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #404040; }
+        
+        .row-link { display: contents; cursor: pointer; }
+        .row-wrapper:hover td { background-color: #262626; }
+    </style>
+</head>
+<body class="bg-dark-bg text-gray-300 min-h-screen flex flex-col antialiased">
+
+    <!-- Navigation -->
+    <nav class="bg-dark-surface border-b border-dark-border sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="#" class="flex items-center space-x-2 text-white font-bold text-xl tracking-tight">
+                        <i class="ph-fill ph-code text-brand text-2xl"></i>
+                        <span>CodeSphere</span>
+                    </a>
+                    <div class="hidden md:flex space-x-1">
+                        <a href="#" class="px-3 py-2 text-sm font-medium text-white border-b-2 border-brand">Problems</a>
+                        <a href="#" class="px-3 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Contests</a>
+                        <a href="#" class="px-3 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Discuss</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-400 hover:text-white"><i class="ph ph-bell text-xl"></i></button>
+                    <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-brand to-orange-400 text-white flex items-center justify-center font-bold text-sm">
+                        U
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col md:flex-row gap-8">
+        
+        <!-- Sidebar / Filters -->
+        <aside class="w-full md:w-64 flex-shrink-0">
+            <div class="bg-dark-surface rounded-xl border border-dark-border p-5 sticky top-24">
+                <h2 class="text-white font-semibold mb-4 flex items-center gap-2">
+                    <i class="ph ph-funnel"></i>
+                    Topics
+                </h2>
+                <div id="category-container" class="flex flex-wrap gap-2">
+                    <!-- Categories will be injected here via JS -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Problem List Section -->
+        <section class="flex-grow flex flex-col gap-4">
+            
+            <!-- Controls (Search & Meta) -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-surface p-4 rounded-xl border border-dark-border">
+                <div class="relative w-full sm:w-72 text-gray-400 focus-within:text-white">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-lg"></i>
+                    <input type="text" id="search-input" placeholder="Search questions..." 
+                        class="w-full bg-dark-bg border border-dark-border rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors">
+                </div>
+                <div class="text-sm text-gray-400" id="question-count">
+                    Loading problems...
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="bg-dark-surface rounded-xl border border-dark-border overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-dark-bg/50 border-b border-dark-border text-gray-400">
+                            <tr>
+                                <th class="w-12 px-4 py-3 text-center">Status</th>
+                                <th class="px-4 py-3 font-medium">Title</th>
+                                <th class="px-4 py-3 font-medium">Category</th>
+                            </tr>
+                        </thead>
+                        <tbody id="questions-tbody" class="divide-y divide-dark-border">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden flex-col items-center justify-center py-16 text-gray-500">
+                    <i class="ph ph-files text-4xl mb-2"></i>
+                    <p>No questions found.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- State Management ---
+        let state = {
+            questions: [],
+            activeCategory: 'All',
+            searchQuery: ''
+        };
+
+        // DOM Elements
+        const tbody = document.getElementById('questions-tbody');
+        const categoryContainer = document.getElementById('category-container');
+        const searchInput = document.getElementById('search-input');
+        const countDisplay = document.getElementById('question-count');
+        const emptyState = document.getElementById('empty-state');
+
+        // --- Data Fetching ---
+        async function fetchQuestions() {
+            try {
+                // Attempt to fetch from your actual backend API
+                const response = await fetch('./api/question/');
+                if (!response.ok) throw new Error('API not available, falling back to mock data');
+                const data = await response.json();
+                return data.Questions;
+            } catch (error) {
+                console.log("Using mock data for preview purposes.");
+                // Mock data provided in the prompt
+                return [
+                    { "QuestionId": 3138, "QuestionName": "String Algorithms", "QuestionCategory": "String Algorithms" },
+                    { "QuestionId": 1637, "QuestionName": "Dynamic Programming", "QuestionCategory": "Dynamic Programming" },
+                    { "QuestionId": 1715, "QuestionName": "Mathematics", "QuestionCategory": "Mathematics" },
+                    { "QuestionId": 2105, "QuestionName": "String Algorithms", "QuestionCategory": "String Algorithms" },
+                    { "QuestionId": 1, "QuestionName": "Two Sum", "QuestionCategory": "Arrays & Hashing" },
+                    { "QuestionId": 143, "QuestionName": "Reorder List", "QuestionCategory": "Linked List" }
+                ];
+            }
+        }
+
+        // --- Rendering Logic ---
+        
+        // 1. Render Categories (Topic Tags)
+        function renderCategories() {
+            // Extract unique categories using Set
+            const categories = ['All', ...new Set(state.questions.map(q => q.QuestionCategory))];
+            
+            categoryContainer.innerHTML = categories.map(category => {
+                const isActive = state.activeCategory === category;
+                const baseClasses = "px-3 py-1.5 text-xs font-medium rounded-full cursor-pointer transition-colors border";
+                const activeClasses = isActive 
+                    ? "bg-brand/10 text-brand border-brand/20" 
+                    : "bg-dark-bg text-gray-400 border-dark-border hover:text-white hover:bg-dark-hover";
+                
+                return `
+                    <button class="${baseClasses} ${activeClasses}" onclick="setCategory('${category}')">
+                        ${category}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // 2. Render Table Rows
+        function renderQuestions() {
+            // Filter based on active category and search query
+            const filtered = state.questions.filter(q => {
+                const matchesCategory = state.activeCategory === 'All' || q.QuestionCategory === state.activeCategory;
+                const matchesSearch = q.QuestionName.toLowerCase().includes(state.searchQuery.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            // Update Count
+            countDisplay.textContent = `${filtered.length} problems`;
+
+            // Handle Empty State
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+
+            // Generate Rows
+            // Note: Wrapping tr in a standard way and using window.location for redirect
+            tbody.innerHTML = filtered.map(q => `
+                <tr class="row-wrapper transition-colors group" onclick="goToProblem(${q.QuestionId})">
+                    <td class="px-4 py-3 text-center cursor-pointer">
+                        <i class="ph ph-circle text-gray-600 group-hover:text-gray-400 transition-colors"></i>
+                    </td>
+                    <td class="px-4 py-3 cursor-pointer">
+                        <div class="text-gray-200 group-hover:text-brand transition-colors font-medium">
+                            ${q.QuestionId}. ${q.QuestionName}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 cursor-pointer">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-dark-bg text-gray-400 border border-dark-border">
+                            ${q.QuestionCategory}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- Actions ---
+        
+        // Exposed to global scope for inline onclick handlers
+        window.setCategory = (category) => {
+            state.activeCategory = category;
+            renderCategories();
+            renderQuestions();
+        };
+
+        window.goToProblem = (id) => {
+            // Redirects to the required path structure
+            window.location.href = `./problems/${id}/`;
+        };
+
+        // Search listener
+        searchInput.addEventListener('input', (e) => {
+            state.searchQuery = e.target.value;
+            renderQuestions();
+        });
+
+        // --- Initialization ---
+        async function init() {
+            const data = await fetchQuestions();
+            state.questions = data;
+            
+            renderCategories();
+            renderQuestions();
+        }
+
+        // Start the app
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>

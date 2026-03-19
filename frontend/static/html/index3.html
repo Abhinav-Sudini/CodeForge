@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CodeForge — Solve</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+
+  <!-- CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/rust/rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f13;
+      --surface:   #13161d;
+      --surface2:  #1a1e28;
+      --border:    #232733;
+      --border2:   #2e3344;
+      --accent:    #f0c040;
+      --text:      #e8eaf0;
+      --muted:     #6b7280;
+      --muted2:    #9ca3af;
+      --green:     #22c55e;
+      --red:       #f87171;
+      --orange:    #fb923c;
+      --blue:      #60a5fa;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.5rem; height: 52px;
+      background: rgba(13,15,19,0.95);
+      border-bottom: 1px solid var(--border);
+      position: relative; z-index: 200; flex-shrink: 0;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 1.5rem; }
+
+    .nav-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 0.95rem;
+      color: var(--accent); display: flex; align-items: center; gap: 0.4rem;
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--text); }
+    .nav-logo::before { content: '>'; animation: blink 1.2s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    .nav-breadcrumb {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .nav-breadcrumb .sep { opacity: 0.4; }
+    .nav-breadcrumb .qname { color: var(--muted2); }
+
+    .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+
+    .nav-chip {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+      padding: 0.28rem 0.65rem; border-radius: 4px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted2);
+    }
+
+    /* ── APP LAYOUT ── */
+    .app {
+      display: flex; height: calc(100vh - 52px);
+      overflow: hidden;
+    }
+
+    /* ── LEFT PANEL ── */
+    .panel-left {
+      width: 42%; min-width: 320px; max-width: 700px;
+      display: flex; flex-direction: column;
+      border-right: 1px solid var(--border);
+      overflow: hidden; flex-shrink: 0;
+    }
+
+    /* Resizer */
+    .resizer {
+      width: 4px; cursor: col-resize; flex-shrink: 0;
+      background: var(--border);
+      transition: background 0.2s;
+      position: relative; z-index: 10;
+    }
+
+    .resizer:hover, .resizer.dragging { background: var(--accent); }
+
+    /* ── RIGHT PANEL ── */
+    .panel-right {
+      flex: 1; display: flex; flex-direction: column; min-width: 0;
+      overflow: hidden;
+    }
+
+    /* ── PANEL TABS ── */
+    .panel-tabs {
+      display: flex; align-items: center;
+      padding: 0 1rem; gap: 0;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; height: 42px;
+    }
+
+    .tab-btn {
+      padding: 0 1rem; height: 42px; line-height: 42px;
+      font-size: 0.78rem; font-weight: 600; font-family: 'Syne', sans-serif;
+      color: var(--muted); cursor: pointer; border: none;
+      background: transparent; border-bottom: 2px solid transparent;
+      transition: all 0.15s; white-space: nowrap; letter-spacing: 0.02em;
+    }
+
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── QUESTION CONTENT ── */
+    .panel-scroll {
+      flex: 1; overflow-y: auto; padding: 1.5rem 1.75rem;
+    }
+
+    .q-header { margin-bottom: 1.5rem; }
+
+    .q-id-badge {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      color: var(--muted); letter-spacing: 0.08em; margin-bottom: 0.5rem;
+    }
+
+    .q-title {
+      font-size: 1.35rem; font-weight: 800; line-height: 1.2;
+      margin-bottom: 0.6rem;
+    }
+
+    .q-meta { display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center; }
+
+    .q-cat {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      padding: 0.2rem 0.55rem; border-radius: 4px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--muted2);
+    }
+
+    .q-constraint-chip {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      padding: 0.2rem 0.55rem; border-radius: 4px;
+      background: rgba(240,192,64,0.08); border: 1px solid rgba(240,192,64,0.2);
+      color: var(--accent);
+    }
+
+    .q-section { margin-bottom: 1.4rem; }
+
+    .q-section-label {
+      font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;
+      color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    .q-section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    .q-body {
+      font-size: 0.88rem; line-height: 1.75; color: var(--muted2);
+    }
+
+    .q-body p { margin-bottom: 0.6rem; }
+    .q-body ul { padding-left: 1.4rem; }
+    .q-body li { margin-bottom: 0.3rem; }
+
+    .q-body .math { color: var(--text); }
+
+    .example-block {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden; margin-bottom: 0.75rem;
+    }
+
+    .example-header {
+      padding: 0.45rem 0.9rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .example-row { display: flex; }
+
+    .example-col {
+      flex: 1; padding: 0.75rem 0.9rem;
+      border-right: 1px solid var(--border);
+    }
+
+    .example-col:last-child { border-right: none; }
+
+    .example-col-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 0.4rem;
+    }
+
+    .example-col-value {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+      color: var(--text); white-space: pre-wrap; word-break: break-all;
+    }
+
+    /* ── RIGHT PANEL HEADER ── */
+    .editor-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1rem; height: 42px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; gap: 0.75rem;
+    }
+
+    .runtime-select {
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 6px; padding: 0.3rem 0.65rem;
+      color: var(--text); font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem; outline: none; cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .runtime-select:focus { border-color: var(--accent); }
+
+    .editor-actions { display: flex; align-items: center; gap: 0.5rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+      font-weight: 700; padding: 0.32rem 0.85rem;
+      border-radius: 6px; cursor: pointer; border: 1px solid;
+      transition: all 0.15s; white-space: nowrap;
+    }
+
+    .btn-ghost {
+      background: transparent; border-color: var(--border2); color: var(--muted2);
+    }
+
+    .btn-ghost:hover { border-color: var(--muted2); color: var(--text); }
+
+    .btn-submit {
+      background: var(--accent); border-color: var(--accent);
+      color: #0d0f13;
+    }
+
+    .btn-submit:hover { background: #e8b020; border-color: #e8b020; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn svg { width: 13px; }
+
+    /* ── CODEMIRROR ── */
+    .editor-wrap { flex: 1; overflow: hidden; position: relative; }
+
+    .CodeMirror {
+      height: 100% !important;
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 0.85rem !important;
+      line-height: 1.6 !important;
+      background: #0f1117 !important;
+    }
+
+    .CodeMirror-scroll { padding-bottom: 0 !important; }
+
+    /* ── BOTTOM PANEL (verdict) ── */
+    .panel-bottom {
+      height: 220px; flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      background: var(--surface);
+      transition: height 0.25s ease;
+    }
+
+    .panel-bottom.collapsed { height: 42px; }
+
+    .panel-bottom-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1rem; height: 42px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border); cursor: pointer;
+      user-select: none;
+    }
+
+    .panel-bottom-title {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+
+    .verdict-badge {
+      font-size: 0.72rem; font-weight: 700;
+      padding: 0.15rem 0.55rem; border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .verdict-badge.accepted  { background: rgba(34,197,94,0.15);  color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .verdict-badge.wrong     { background: rgba(248,113,113,0.15); color: var(--red);   border: 1px solid rgba(248,113,113,0.3); }
+    .verdict-badge.pending   { background: rgba(240,192,64,0.12);  color: var(--accent);border: 1px solid rgba(240,192,64,0.25); }
+    .verdict-badge.error     { background: rgba(251,146,60,0.15);  color: var(--orange);border: 1px solid rgba(251,146,60,0.3); }
+    .verdict-badge.tle       { background: rgba(96,165,250,0.15);  color: var(--blue);  border: 1px solid rgba(96,165,250,0.3); }
+
+    .chevron {
+      font-size: 0.75rem; color: var(--muted);
+      transition: transform 0.2s;
+    }
+
+    .panel-bottom.collapsed .chevron { transform: rotate(180deg); }
+
+    .panel-bottom-body {
+      flex: 1; overflow-y: auto; padding: 1rem 1.25rem;
+    }
+
+    .panel-bottom.collapsed .panel-bottom-body { display: none; }
+
+    /* verdict content */
+    .verdict-idle {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; height: 100%; gap: 0.5rem;
+      color: var(--muted); font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    .verdict-idle .idle-icon { font-size: 1.8rem; opacity: 0.25; }
+
+    .verdict-loading {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+      color: var(--muted2); height: 100%;
+    }
+
+    .mini-spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border2); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.6s linear infinite; flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .verdict-result { display: flex; flex-direction: column; gap: 0.85rem; }
+
+    .verdict-stats {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+    }
+
+    .vstat {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.4rem 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .vstat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.2rem; }
+    .vstat-val   { font-size: 0.88rem; color: var(--text); font-weight: 700; }
+
+    .verdict-section-title {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 0.4rem;
+    }
+
+    .verdict-code-block {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.65rem 0.9rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+      color: var(--text); white-space: pre-wrap; word-break: break-all;
+      max-height: 80px; overflow-y: auto;
+    }
+
+    .verdict-code-block.err { color: var(--red); border-color: rgba(248,113,113,0.3); }
+    .verdict-code-block.wa  { color: var(--orange); }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* ── LOADING SKELETON ── */
+    .skeleton-line {
+      height: 14px; border-radius: 4px;
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border2) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite; margin-bottom: 0.6rem;
+    }
+
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .app { flex-direction: column; overflow-y: auto; }
+      .panel-left { width: 100%; max-width: 100%; border-right: none; border-bottom: 1px solid var(--border); height: 50vh; min-height: 300px; }
+      .resizer { display: none; }
+      .panel-right { min-height: 400px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <a class="nav-logo" href="/"><span>Code</span>Forge</a>
+    <div class="nav-breadcrumb">
+      <span class="sep">/</span>
+      <span>Problems</span>
+      <span class="sep">/</span>
+      <span class="qname" id="nav-qname">…</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span class="nav-chip" id="nav-qid">—</span>
+    <span class="nav-chip" id="nav-cat">—</span>
+  </div>
+</nav>
+
+<!-- APP -->
+<div class="app" id="app">
+
+  <!-- LEFT PANEL -->
+  <div class="panel-left" id="panel-left">
+    <div class="panel-tabs">
+      <button class="tab-btn active" data-tab="description">Description</button>
+      <button class="tab-btn" data-tab="examples">Examples</button>
+      <button class="tab-btn" data-tab="constraints">Constraints</button>
+    </div>
+
+    <div class="panel-scroll" id="panel-scroll">
+      <!-- loading skeleton -->
+      <div id="skeleton">
+        <div class="skeleton-line" style="width:40%;height:10px;margin-bottom:1rem"></div>
+        <div class="skeleton-line" style="width:70%;height:20px;margin-bottom:1.5rem"></div>
+        <div class="skeleton-line" style="width:100%"></div>
+        <div class="skeleton-line" style="width:90%"></div>
+        <div class="skeleton-line" style="width:95%"></div>
+        <div class="skeleton-line" style="width:80%"></div>
+        <div class="skeleton-line" style="width:88%"></div>
+      </div>
+
+      <!-- actual content (hidden until loaded) -->
+      <div id="q-content" style="display:none">
+
+        <!-- Description tab -->
+        <div class="tab-content" data-tab-content="description">
+          <div class="q-header">
+            <div class="q-id-badge" id="q-id-badge"></div>
+            <div class="q-title" id="q-title"></div>
+            <div class="q-meta" id="q-meta"></div>
+          </div>
+
+          <div class="q-section">
+            <div class="q-section-label">Problem</div>
+            <div class="q-body" id="q-description"></div>
+          </div>
+
+          <div class="q-section">
+            <div class="q-section-label">Input</div>
+            <div class="q-body" id="q-input"></div>
+          </div>
+
+          <div class="q-section">
+            <div class="q-section-label">Output</div>
+            <div class="q-body" id="q-output"></div>
+          </div>
+        </div>
+
+        <!-- Examples tab -->
+        <div class="tab-content" data-tab-content="examples" style="display:none">
+          <div class="q-section">
+            <div class="q-section-label">Examples</div>
+            <div id="q-examples"></div>
+          </div>
+        </div>
+
+        <!-- Constraints tab -->
+        <div class="tab-content" data-tab-content="constraints" style="display:none">
+          <div class="q-section">
+            <div class="q-section-label">Constraints</div>
+            <div class="q-body" id="q-constraints"></div>
+          </div>
+          <div class="q-section">
+            <div class="q-section-label">Limits</div>
+            <div style="display:flex;gap:0.75rem;flex-wrap:wrap" id="q-limits"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RESIZER -->
+  <div class="resizer" id="resizer"></div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel-right" id="panel-right">
+
+    <!-- editor header -->
+    <div class="editor-header">
+      <select class="runtime-select" id="runtime-select">
+        <option value="cpp23">C++23</option>
+        <option value="python3" selected>Python 3</option>
+        <option value="javascript">JavaScript (Node)</option>
+        <option value="java">Java</option>
+        <option value="rust">Rust</option>
+        <option value="go">Go</option>
+      </select>
+
+      <div class="editor-actions">
+        <button class="btn btn-ghost" id="btn-reset" title="Reset code">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset
+        </button>
+        <button class="btn btn-submit" id="btn-submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Submit
+        </button>
+      </div>
+    </div>
+
+    <!-- editor -->
+    <div class="editor-wrap">
+      <textarea id="code-editor"></textarea>
+    </div>
+
+    <!-- bottom verdict panel -->
+    <div class="panel-bottom" id="panel-bottom">
+      <div class="panel-bottom-header" id="verdict-toggle">
+        <div class="panel-bottom-title">
+          <span>Verdict</span>
+          <span class="verdict-badge pending" id="verdict-label" style="display:none"></span>
+        </div>
+        <span class="chevron">▲</span>
+      </div>
+      <div class="panel-bottom-body" id="verdict-body">
+        <div class="verdict-idle">
+          <div class="idle-icon">▷</div>
+          <span>Submit your solution to see the verdict.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── EXTRACT QUESTION ID FROM URL ──────────────────────────────────────────────
+// Expects URL like /problems/3138/
+function getQuestionId() {
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const idx = parts.indexOf('problems');
+  if (idx !== -1 && parts[idx + 1]) return parts[idx + 1];
+  // fallback: last numeric segment
+  for (let i = parts.length - 1; i >= 0; i--) {
+    if (/^\d+$/.test(parts[i])) return parts[i];
+  }
+  return '3138'; // dev fallback
+}
+
+const QUESTION_ID = getQuestionId();
+
+// ── DEFAULT CODE TEMPLATES ────────────────────────────────────────────────────
+const TEMPLATES = {
+  cpp23: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    \n    // your code here\n    \n    return 0;\n}`,
+  python3: `import sys\ninput = sys.stdin.readline\n\ndef solve():\n    pass\n\nsolve()`,
+  javascript: `const lines = require('fs').readFileSync('/dev/stdin','utf8').trim().split('\\n');\n\n// your code here\n`,
+  java: `import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static void main(String[] args) throws IOException {\n        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\n        // your code here\n    }\n}`,
+  rust: `use std::io::{self, BufRead};\n\nfn main() {\n    let stdin = io::stdin();\n    // your code here\n}`,
+  go: `package main\n\nimport (\n    "bufio"\n    "fmt"\n    "os"\n)\n\nfunc main() {\n    reader := bufio.NewReader(os.Stdin)\n    _ = reader\n    fmt.Println()\n}`,
+};
+
+const CM_MODES = {
+  cpp23: 'text/x-c++src',
+  python3: 'python',
+  javascript: 'javascript',
+  java: 'text/x-java',
+  rust: 'rust',
+  go: 'text/x-go',
+};
+
+// ── CODEMIRROR SETUP ──────────────────────────────────────────────────────────
+let editor;
+
+function initEditor() {
+  editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+    mode: CM_MODES['python3'],
+    theme: 'dracula',
+    lineNumbers: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: false,
+    lineWrapping: false,
+    extraKeys: {
+      'Tab': cm => cm.execCommand('indentMore'),
+      'Shift-Tab': cm => cm.execCommand('indentLess'),
+    },
+  });
+  editor.setValue(TEMPLATES['python3']);
+
+  // Override CodeMirror's internal background to match theme
+  editor.getWrapperElement().style.height = '100%';
+}
+
+document.getElementById('runtime-select').addEventListener('change', e => {
+  const rt = e.target.value;
+  editor.setOption('mode', CM_MODES[rt] || 'text/plain');
+  editor.setValue(TEMPLATES[rt] || '');
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  const rt = document.getElementById('runtime-select').value;
+  editor.setValue(TEMPLATES[rt] || '');
+  editor.focus();
+});
+
+// ── FETCH QUESTION ────────────────────────────────────────────────────────────
+async function fetchQuestion() {
+  try {
+    const res  = await fetch(`/api/question/${QUESTION_ID}/`);
+    const data = await res.json();
+    renderQuestion(data);
+  } catch(e) {
+    document.getElementById('skeleton').innerHTML = `
+      <div style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.82rem;padding:2rem 0">
+        ⚠ Failed to load question.
+      </div>`;
+  }
+}
+
+function renderQuestion(q) {
+  // nav
+  document.getElementById('nav-qname').textContent  = q.QuestionName;
+  document.getElementById('nav-qid').textContent    = `#${q.QuestionID}`;
+  document.getElementById('nav-cat').textContent    = q.QuestionCategory;
+  document.title = `${q.QuestionName} — CodeForge`;
+
+  // header
+  document.getElementById('q-id-badge').textContent = `// #${q.QuestionID}`;
+  document.getElementById('q-title').textContent    = q.QuestionName;
+
+  const meta = document.getElementById('q-meta');
+  meta.innerHTML = `
+    <span class="q-cat">${esc(q.QuestionCategory)}</span>
+    <span class="q-constraint-chip">⏱ ${q.TimeConstraint} ms</span>
+    <span class="q-constraint-chip">💾 ${(q.MemConstraint/1024).toFixed(0)} MB</span>
+  `;
+
+  // body sections
+  document.getElementById('q-description').innerHTML = q.QuestionDescription || '';
+  document.getElementById('q-input').innerHTML       = q.InputDescription    || '';
+  document.getElementById('q-output').innerHTML      = q.OutputDescription   || '';
+  document.getElementById('q-constraints').innerHTML = q.ConstraintsDescription || '';
+
+  // limits
+  document.getElementById('q-limits').innerHTML = `
+    <div class="vstat"><div class="vstat-label">Time Limit</div><div class="vstat-val">${q.TimeConstraint} ms</div></div>
+    <div class="vstat"><div class="vstat-label">Memory Limit</div><div class="vstat-val">${(q.MemConstraint/1024).toFixed(0)} MB</div></div>
+  `;
+
+  // examples
+  const exDiv = document.getElementById('q-examples');
+  const inputs  = q.ExampleInputs  || [];
+  const outputs = q.ExampleOutputs || [];
+  const count = Math.max(inputs.length, outputs.length);
+  let exHtml = '';
+  for (let i = 0; i < count; i++) {
+    exHtml += `
+      <div class="example-block">
+        <div class="example-header">Example ${i + 1}</div>
+        <div class="example-row">
+          <div class="example-col">
+            <div class="example-col-label">Input</div>
+            <div class="example-col-value">${esc(inputs[i] || '')}</div>
+          </div>
+          <div class="example-col">
+            <div class="example-col-label">Output</div>
+            <div class="example-col-value">${esc(outputs[i] || '')}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+  exDiv.innerHTML = exHtml || '<p style="color:var(--muted);font-family:JetBrains Mono,monospace;font-size:.8rem">No examples provided.</p>';
+
+  // show content, hide skeleton
+  document.getElementById('skeleton').style.display  = 'none';
+  document.getElementById('q-content').style.display = 'block';
+
+  // render KaTeX
+  if (window.renderMathInElement) {
+    renderMathInElement(document.getElementById('q-content'), {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$', right: '$', display: false },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true },
+      ],
+      throwOnError: false,
+    });
+  }
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab-content').forEach(tc => {
+      tc.style.display = tc.dataset.tabContent === target ? 'block' : 'none';
+    });
+  });
+});
+
+// ── VERDICT PANEL TOGGLE ─────────────────────────────────────────────────────
+document.getElementById('verdict-toggle').addEventListener('click', () => {
+  document.getElementById('panel-bottom').classList.toggle('collapsed');
+});
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+document.getElementById('btn-submit').addEventListener('click', submitCode);
+
+async function submitCode() {
+  const runtime = document.getElementById('runtime-select').value;
+  const code    = editor.getValue();
+  const btn     = document.getElementById('btn-submit');
+
+  btn.disabled = true;
+
+  setVerdictPending();
+
+  let submissionId;
+  try {
+    const res = await fetch('/api/submissions/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ QuestionId: parseInt(QUESTION_ID), runtime, code }),
+    });
+    if (res.status !== 202) throw new Error(`Unexpected status ${res.status}`);
+    const data = await res.json();
+    submissionId = data.submission_id || data.Submission_id || data.id;
+  } catch(e) {
+    setVerdictError(`Failed to submit: ${e.message}`);
+    btn.disabled = false;
+    return;
+  }
+
+  pollVerdict(submissionId, btn);
+}
+
+function pollVerdict(id, btn) {
+  const interval = setInterval(async () => {
+    try {
+      const res  = await fetch(`/api/submissions/${id}/`);
+      const data = await res.json();
+
+      const v = (data.Verdict || '').toLowerCase();
+      if (!v || v === 'pending' || v === 'queued' || v === 'running') return; // still waiting
+
+      clearInterval(interval);
+      btn.disabled = false;
+      renderVerdict(data);
+    } catch(e) {
+      clearInterval(interval);
+      btn.disabled = false;
+      setVerdictError(`Polling error: ${e.message}`);
+    }
+  }, 500);
+}
+
+// ── VERDICT RENDERING ─────────────────────────────────────────────────────────
+function setVerdictPending() {
+  const bottom = document.getElementById('panel-bottom');
+  bottom.classList.remove('collapsed');
+
+  const label = document.getElementById('verdict-label');
+  label.style.display = 'inline';
+  label.className = 'verdict-badge pending';
+  label.textContent = 'Judging…';
+
+  document.getElementById('verdict-body').innerHTML = `
+    <div class="verdict-loading">
+      <div class="mini-spinner"></div>
+      <span>Waiting for judge…</span>
+    </div>`;
+}
+
+function setVerdictError(msg) {
+  const label = document.getElementById('verdict-label');
+  label.style.display = 'inline';
+  label.className = 'verdict-badge error';
+  label.textContent = 'Error';
+
+  document.getElementById('verdict-body').innerHTML = `
+    <div class="verdict-result">
+      <div class="verdict-section-title">Error</div>
+      <div class="verdict-code-block err">${esc(msg)}</div>
+    </div>`;
+}
+
+function renderVerdict(d) {
+  const verdict = d.Verdict || 'Unknown';
+  const vl      = verdict.toLowerCase().replace(/\s+/g, '');
+
+  const label = document.getElementById('verdict-label');
+  label.style.display = 'inline';
+  label.textContent = verdict;
+  label.className = 'verdict-badge ' + (
+    vl === 'accepted'              ? 'accepted'  :
+    vl === 'wronganswer'           ? 'wrong'     :
+    vl.includes('timelimit')       ? 'tle'       :
+    vl.includes('error') || vl.includes('runtime') ? 'error' :
+    'pending'
+  );
+
+  let html = '<div class="verdict-result">';
+
+  // stats row
+  html += `<div class="verdict-stats">`;
+  if (d.Time_ms  != null) html += `<div class="vstat"><div class="vstat-label">Time</div><div class="vstat-val">${d.Time_ms} ms</div></div>`;
+  if (d.Mem_usage != null) html += `<div class="vstat"><div class="vstat-label">Memory</div><div class="vstat-val">${(d.Mem_usage/1024).toFixed(1)} MB</div></div>`;
+  if (d.SubmissionTime) {
+    const dt = new Date(d.SubmissionTime);
+    html += `<div class="vstat"><div class="vstat-label">Submitted</div><div class="vstat-val">${dt.toLocaleTimeString()}</div></div>`;
+  }
+  html += `</div>`;
+
+  // WA details
+  if (vl === 'wronganswer' || d.WA_Test_case) {
+    html += `<div>
+      <div class="verdict-section-title">Failed on test #${d.WA_Test_case || '?'}</div>
+      ${d.WA_Stdout ? `<div class="verdict-section-title" style="margin-top:.6rem">Your Output</div>
+        <div class="verdict-code-block wa">${esc(d.WA_Stdout)}</div>` : ''}
+    </div>`;
+  }
+
+  // stderr
+  if (d.Stderr && d.Stderr.trim()) {
+    html += `<div>
+      <div class="verdict-section-title">Stderr</div>
+      <div class="verdict-code-block err">${esc(d.Stderr)}</div>
+    </div>`;
+  }
+
+  html += '</div>';
+  document.getElementById('verdict-body').innerHTML = html;
+}
+
+// ── DRAG RESIZER ──────────────────────────────────────────────────────────────
+(function() {
+  const resizer    = document.getElementById('resizer');
+  const panelLeft  = document.getElementById('panel-left');
+  let dragging     = false, startX = 0, startW = 0;
+
+  resizer.addEventListener('mousedown', e => {
+    dragging = true; startX = e.clientX;
+    startW = panelLeft.getBoundingClientRect().width;
+    resizer.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx  = e.clientX - startX;
+    const nw  = Math.min(Math.max(startW + dx, 280), window.innerWidth * 0.65);
+    panelLeft.style.width = nw + 'px';
+    if (editor) editor.refresh();
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    resizer.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    if (editor) editor.refresh();
+  });
+})();
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initEditor();
+  fetchQuestion();
+});
+</script>
+</body>
+</html>

@@ -16,6 +16,9 @@ services:
       - type: bind
         source: ./judge/master/bin
         target: /dev_master
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
 
   judge.worker.cpp:
     image: codeforge.cpp:latest

@@ -6,10 +6,15 @@ services:
       dockerfile: Dockerfiles/master/Dockerfile
     env_file: judge/Dockerfiles/master/master.env
     ports:
-      - "7000:7000"
+      - "4442:7000"
     networks:
       - public_net
       - private_net
+    volumes:
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+        read_only: true
     depends_on:
     - database
 
@@ -25,6 +30,87 @@ services:
       - type: bind
         source: ./judge/scraped_questions
         target: /questionsDir
+        read_only: true
+    depends_on:
+    - judge.master
+
+  judge.worker.cpp20:
+    image: codeforge.cpp20:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/cpp20/Dockerfile.cpp.prod
+    env_file: judge/Dockerfiles/cpp20/cpp.env
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+        read_only: true
+    depends_on:
+    - judge.master
+
+  judge.worker.cpp23:
+    image: codeforge.cpp23:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/cpp23/Dockerfile.cpp.prod
+    env_file: judge/Dockerfiles/cpp23/cpp.env
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+        read_only: true
+    depends_on:
+    - judge.master
+
+  judge.worker.c:
+    image: codeforge.c:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/c/Dockerfile.c.prod
+    env_file: judge/Dockerfiles/c/c.env
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+        read_only: true
+    depends_on:
+    - judge.master
+
+  judge.worker.python:
+    image: codeforge.python:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/python/Dockerfile.python.prod
+    env_file: judge/Dockerfiles/python/python.env
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+        read_only: true
+    depends_on:
+    - judge.master
+
+  judge.worker.node:
+    image: codeforge.node:latest
+    build:
+      context: ./judge
+      dockerfile: Dockerfiles/node/Dockerfile.node.prod
+    env_file: judge/Dockerfiles/node/node.env
+    networks:
+      - private_net
+    volumes:
+      - type: bind
+        source: ./judge/scraped_questions
+        target: /questionsDir
+        read_only: true
     depends_on:
     - judge.master
 
@@ -55,4 +141,3 @@ networks:
   private_net:
     driver: bridge
     internal: true
-
