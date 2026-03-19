@@ -137,8 +137,8 @@ func scrape_question(question_id int, task Task) (postgres_db.CreateQuestionPara
 			}
 			params = postgres_db.CreateQuestionParams{
 				QuestionID:             int32(task.Task_id),
-				QuestionCatagory:       pgtype.Text{task.Task_Group, true},
-				QuestionName:           pgtype.Text{task.Task_Group, true},
+				QuestionCategory:       pgtype.Text{task.Task_Group, true},
+				QuestionName:           pgtype.Text{task.TaskName, true},
 				QuestionDescription:    pgtype.Text{question, true},
 				InputDescription:       pgtype.Text{input, true},
 				OutputDescription:      pgtype.Text{output, true},

@@ -5,13 +5,14 @@ INSERT INTO questions (
     question_name,
     question_description,
     input_description,
+    output_description,
     constraints_description,
     time_constraint,
     mem_constraint,
     example_inputs,
     example_outputs
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 );
 
 -- name: GetTimeAndMemConstraints :one
