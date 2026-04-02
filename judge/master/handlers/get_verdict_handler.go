@@ -25,6 +25,7 @@ func (s *Server) Get_submission_verdict_handler(w http.ResponseWriter, r *http.R
 
 	return_struct := types.Submission_verdict_resp_json{
 		Submission_id:   int(submission.SubmissionID),
+		SubmittedCode:   submission.SubmitedCode.String,
 		QuestionId:      int(submission.QuestionID),
 		Verdict:         submission.Verdict.String,
 		Time_ms:         int(submission.TimeMs.Int32),
@@ -36,7 +37,6 @@ func (s *Server) Get_submission_verdict_handler(w http.ResponseWriter, r *http.R
 		Stderr:          submission.Stderr.String,
 		SubmissionTime:  submission.SubmissionTime.Time,
 	}
-
 
 	json_resp, err := json.Marshal(return_struct)
 	if err != nil {
