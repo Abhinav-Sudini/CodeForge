@@ -20,8 +20,8 @@ func (s *Server) GetAllQuestionsDetailsHandler(w http.ResponseWriter, r *http.Re
 		http.Error(w, "unalble to get questions", http.StatusInternalServerError)
 		return
 	}
-	w.Write(resp_json)
 	w.WriteHeader(http.StatusOK)
+	w.Write(resp_json)
 }
 
 func make_question_struct(all_questions []db.GetAllQuestionsMinimalDetailsRow) types.Get_all_questions_resp_json {
