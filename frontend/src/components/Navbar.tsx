@@ -20,11 +20,10 @@ export default function Navbar() {
               <Code2 className="w-4 h-4" />
               Problems
             </Link>
-            {/* Login placeholder - as requested */}
-            <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all cursor-not-allowed opacity-70">
+            <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all hover:shadow-[0_0_15px_rgba(99,102,241,0.3)]">
               <UserCircle className="w-4 h-4" />
               Login
-            </button>
+            </Link>
           </div>
         </div>
       </div>
