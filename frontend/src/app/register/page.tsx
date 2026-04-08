@@ -13,16 +13,13 @@ export default function RegisterPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      alert("Auth API not wired up yet!");
-    }, 1000);
+    // TODO: implement registration API
+    console.warn("Registration not connected");
+    setIsLoading(false);
   };
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] w-full items-center justify-center p-4">
-      {/* Background glowing effects */}
       <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-cyan-600/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
 
