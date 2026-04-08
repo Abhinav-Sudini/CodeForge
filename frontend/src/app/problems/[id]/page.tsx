@@ -2,6 +2,32 @@ import { fetchQuestionDetail, fetchQuestionSubmissions } from "@/lib/api";
 import CodeEditor from "@/components/CodeEditor";
 import { notFound } from "next/navigation";
 import { Clock, HardDrive, CheckCircle, XCircle } from "lucide-react";
+import parse, { HTMLReactParserOptions } from 'html-react-parser';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
+
+const parseOptions: HTMLReactParserOptions = {
+  replace: (domNode: any) => {
+    if (domNode.attribs && domNode.attribs.class && domNode.attribs.class.includes('math')) {
+      const isBlock = domNode.attribs.class.includes('math-display');
+      
+      let mathText = '';
+      if (domNode.children && domNode.children.length > 0) {
+         mathText = domNode.children[0].data || '';
+      }
+      
+      try {
+        const html = katex.renderToString(mathText, {
+          displayMode: isBlock,
+          throwOnError: false,
+        });
+        return <span dangerouslySetInnerHTML={{ __html: html }} />;
+      } catch (e) {
+        return <span>{mathText}</span>;
+      }
+    }
+  }
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -47,18 +73,18 @@ export default async function ProblemPage({ params }: { params: { id: string } }
 
         <div className="prose prose-invert max-w-none text-neutral-300">
           <h3 className="text-white font-semibold text-lg border-b border-white/10 pb-2 mb-4">Description</h3>
-          <p className="whitespace-pre-wrap">{question.QuestionDescription}</p>
+          <div className="math-rendered-content">{parse(question.QuestionDescription, parseOptions)}</div>
 
           <h3 className="text-white font-semibold text-lg border-b border-white/10 pb-2 mt-8 mb-4">Input</h3>
-          <p className="whitespace-pre-wrap">{question.InputDescription}</p>
+          <div className="math-rendered-content">{parse(question.InputDescription, parseOptions)}</div>
 
           <h3 className="text-white font-semibold text-lg border-b border-white/10 pb-2 mt-8 mb-4">Output</h3>
-          <p className="whitespace-pre-wrap">{question.OutputDescription}</p>
+          <div className="math-rendered-content">{parse(question.OutputDescription, parseOptions)}</div>
 
           {question.ConstraintsDescription && (
             <>
               <h3 className="text-white font-semibold text-lg border-b border-white/10 pb-2 mt-8 mb-4">Constraints</h3>
-              <p className="whitespace-pre-wrap font-mono text-sm bg-neutral-900 p-4 rounded-xl border border-white/5">{question.ConstraintsDescription}</p>
+              <div className="math-rendered-content bg-neutral-900 p-4 rounded-xl border border-white/5">{parse(question.ConstraintsDescription, parseOptions)}</div>
             </>
           )}
 
