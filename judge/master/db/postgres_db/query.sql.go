@@ -18,13 +18,14 @@ INSERT INTO questions (
     question_name,
     question_description,
     input_description,
+    output_description,
     constraints_description,
     time_constraint,
     mem_constraint,
     example_inputs,
     example_outputs
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 )
 `
 
@@ -34,6 +35,7 @@ type CreateQuestionParams struct {
 	QuestionName           pgtype.Text
 	QuestionDescription    pgtype.Text
 	InputDescription       pgtype.Text
+	OutputDescription      pgtype.Text
 	ConstraintsDescription pgtype.Text
 	TimeConstraint         int32
 	MemConstraint          int32
@@ -48,6 +50,7 @@ func (q *Queries) CreateQuestion(ctx context.Context, arg CreateQuestionParams) 
 		arg.QuestionName,
 		arg.QuestionDescription,
 		arg.InputDescription,
+		arg.OutputDescription,
 		arg.ConstraintsDescription,
 		arg.TimeConstraint,
 		arg.MemConstraint,
@@ -202,6 +205,7 @@ func (q *Queries) GetAllQuestionsMinimalDetails(ctx context.Context) ([]GetAllQu
 const getAllSubmissionOfQuestion = `-- name: GetAllSubmissionOfQuestion :many
 SELECT 
 s.submission_id,
+s.submited_code,
 s.question_id,
 s.verdict,
 v.mem_usage,
@@ -218,6 +222,7 @@ type GetAllSubmissionOfQuestionParams struct {
 
 type GetAllSubmissionOfQuestionRow struct {
 	SubmissionID              int32
+	SubmitedCode              pgtype.Text
 	QuestionID                int32
 	Verdict                   pgtype.Text
 	MemUsage                  pgtype.Int4
@@ -239,6 +244,7 @@ func (q *Queries) GetAllSubmissionOfQuestion(ctx context.Context, arg GetAllSubm
 		var i GetAllSubmissionOfQuestionRow
 		if err := rows.Scan(
 			&i.SubmissionID,
+			&i.SubmitedCode,
 			&i.QuestionID,
 			&i.Verdict,
 			&i.MemUsage,
@@ -286,6 +292,7 @@ func (q *Queries) GetQuestion(ctx context.Context, questionID int32) (Question, 
 const getSubmissionVerdict = `-- name: GetSubmissionVerdict :one
 SELECT 
 s.submission_id,
+s.submited_code,
 s.question_id,
 s.verdict,
 v.mem_usage,
@@ -297,6 +304,7 @@ WHERE s.submission_id = $1
 
 type GetSubmissionVerdictRow struct {
 	SubmissionID              int32
+	SubmitedCode              pgtype.Text
 	QuestionID                int32
 	Verdict                   pgtype.Text
 	MemUsage                  pgtype.Int4
@@ -312,6 +320,7 @@ func (q *Queries) GetSubmissionVerdict(ctx context.Context, submissionID int32) 
 	var i GetSubmissionVerdictRow
 	err := row.Scan(
 		&i.SubmissionID,
+		&i.SubmitedCode,
 		&i.QuestionID,
 		&i.Verdict,
 		&i.MemUsage,

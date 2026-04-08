@@ -199,6 +199,9 @@ func runForSingleTestCase(runner_parms types.RunnerParamsJson, test_inp_file str
 	cmd.Stdout = &buf_out
 	cmd.Stderr = &buf_err
 
+	//remove the parents ENV variables
+	cmd.Env = utils.CopyEnvVariablesOfParent(config.WorkerRuntimeENVVariablesToInclude)
+
 	//running the comand
 	MyLog.Printdev("singele exec runner", "cmd comand being run", cmd.String())
 	if err := cmd.Start(); err != nil {

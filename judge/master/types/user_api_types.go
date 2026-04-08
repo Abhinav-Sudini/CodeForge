@@ -20,6 +20,7 @@ type Submission_verdict_req_json struct {
 }
 type Submission_verdict_resp_json struct {
 	Submission_id int    `json:"Submission_id"`
+	SubmittedCode string `json:"Submitted_code"`
 	QuestionId    int    `json:"QuestionId"`
 	Verdict       string `josn:"Verdict"`
 	Mem_usage     int    `json:"Mem_usage"`

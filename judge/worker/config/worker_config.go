@@ -23,6 +23,8 @@ var Master_url = marster_ip + ":" + port
 const VerdictApiLocation = "/api/worker/verdict/"
 const WorkerRegisterApiLocation = "/api/worker/register/"
 
+var WorkerRuntimeENVVariablesToInclude = []string{"PATH", "HOME"}
+
 const (
 	MsgOnAccepted       = "Accepted"
 	MsgOnWrongAns       = "Wrong Answer on Test - "

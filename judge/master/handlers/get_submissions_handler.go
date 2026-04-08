@@ -45,6 +45,7 @@ func make_submissions_struct(submissions []db.GetAllSubmissionOfQuestionRow) typ
 		q_stdin,q_stdout := utils.GetTestCaseStdinStdout(int(submissions[i].QuestionID),int(submissions[i].NotAcceptedTestCase.Int32))
 		temp_slice = append(temp_slice,types.Submission_verdict_resp_json{
 			Submission_id: int(submissions[i].SubmissionID),	
+			SubmittedCode: submissions[i].SubmitedCode.String,
 			QuestionId: int(submissions[i].QuestionID),
 			Verdict: submissions[i].Verdict.String,
 			Time_ms: int(submissions[i].TimeMs.Int32),
