@@ -1,4 +1,4 @@
-export const API_BASE = "http://localhost:7000/api";
+export const API_BASE = "https://azure.abhi.dedyn.io/cfbackend/api";
 
 export interface QuestionMinimal {
   QuestionId: number;
