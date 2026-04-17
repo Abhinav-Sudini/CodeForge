@@ -9,18 +9,18 @@ import (
 	db "master/db/postgres_db"
 	"master/types"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
-
 
 func validateRequest(user_req types.User_judge_req_json, queries *db.Queries) error {
 	if _, ok := config.AllRuntimes[user_req.Runtime]; ok != true {
 		return fmt.Errorf("Runtime does not exist :%s", user_req.Runtime)
 	}
 	if ok, err := queries.QuestionExists(context.Background(), int32(user_req.QuestionId)); err != nil || ok == false {
-		return fmt.Errorf("question id does not exist %v with err :%v", user_req.QuestionId,err)
+		return fmt.Errorf("question id does not exist %v with err :%v", user_req.QuestionId, err)
 	}
 	return nil
 }
@@ -46,7 +46,13 @@ func (server *Server) Handle_new_job_req(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var user_id = 1
+	user_id,err := strconv.Atoi(r.Context().Value("user_id").(string))
+	if err != nil{
+		fmt.Println("failed to read user id")
+		http.Error(w,"failed to get user_id",http.StatusBadRequest)
+		return
+	}
+
 	worker_req, err := createNewWorkerJobRequest(user_req, user_id, server.queries)
 	if err != nil {
 		fmt.Println("could not create request with err : ", err)
@@ -60,10 +66,10 @@ func (server *Server) Handle_new_job_req(w http.ResponseWriter, r *http.Request)
 	}
 
 	resp := types.User_judge_resp_json{
-		Verdict: "queued",
+		Verdict:       "queued",
 		Submission_id: worker_req.JobId,
 	}
-	resp_json,err := json.Marshal(resp)
+	resp_json, err := json.Marshal(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

@@ -11,12 +11,12 @@ import (
 
 func (s *Server) GetQuestionSubmissionsHandler(w http.ResponseWriter, r *http.Request) {
 	question_id,err := strconv.Atoi(r.PathValue("q_id"))
-	if err != nil {
-		http.Error(w,"no submissions_id pathvalue",http.StatusBadRequest)
+	user_id,err1 := strconv.Atoi(r.Context().Value("user_id").(string))
+	if err != nil || err1 != nil {
+		http.Error(w,"invalid submissions_id or user_id",http.StatusBadRequest)
 		return
 	}
 
-	user_id := 1
 	submissions, err := s.queries.GetAllSubmissionOfQuestion(r.Context(),
 		db.GetAllSubmissionOfQuestionParams{
 			QuestionID: int32(question_id),

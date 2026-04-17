@@ -93,6 +93,7 @@ INSERT INTO verdict_stats (
 -- name: GetSubmissionVerdict :one
 SELECT 
 s.submission_id,
+s.submited_code,
 s.question_id,
 s.verdict,
 v.mem_usage,
@@ -115,6 +116,7 @@ LIMIT 1;
 -- name: GetAllSubmissionOfQuestion :many
 SELECT 
 s.submission_id,
+s.submited_code,
 s.question_id,
 s.verdict,
 v.mem_usage,

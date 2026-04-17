@@ -56,6 +56,18 @@ INSERT INTO users (
 )
 RETURNING id;
 
+-- name: GetUser :one
+SELECT *
+FROM users 
+WHERE email = $1;
+
+-- name: UserNameExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM users
+    WHERE email = $1
+);
+
 -- name: CreateSubmissionAndReturnId :one
 INSERT INTO submissions (
   user_id,

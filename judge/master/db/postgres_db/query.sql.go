@@ -371,6 +371,27 @@ func (q *Queries) GetTimeAndMemConstraints(ctx context.Context, questionID int32
 	return i, err
 }
 
+const getUser = `-- name: GetUser :one
+SELECT id, username, email, encrypted_password, role, created_at, last_online
+FROM users 
+WHERE email = $1
+`
+
+func (q *Queries) GetUser(ctx context.Context, email pgtype.Text) (User, error) {
+	row := q.db.QueryRow(ctx, getUser, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.EncryptedPassword,
+		&i.Role,
+		&i.CreatedAt,
+		&i.LastOnline,
+	)
+	return i, err
+}
+
 const getVerdictStats = `-- name: GetVerdictStats :one
 SELECT submission_id, mem_usage, time_ms, not_accepted_test_case, not_accepted_test_case_stdout, stderr FROM verdict_stats
 WHERE submission_id = $1
@@ -420,4 +441,19 @@ type UpdateVerdictForSubmitionParams struct {
 func (q *Queries) UpdateVerdictForSubmition(ctx context.Context, arg UpdateVerdictForSubmitionParams) error {
 	_, err := q.db.Exec(ctx, updateVerdictForSubmition, arg.SubmissionID, arg.Verdict)
 	return err
+}
+
+const userNameExists = `-- name: UserNameExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM users
+    WHERE email = $1
+)
+`
+
+func (q *Queries) UserNameExists(ctx context.Context, email pgtype.Text) (bool, error) {
+	row := q.db.QueryRow(ctx, userNameExists, email)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

@@ -18,7 +18,8 @@ import (
 
 var (
 	json_file_path = "./CSES_Scraped_Task_Details.json"
-	start_ind      = 275 + 91
+	// start_ind      = 275 + 91
+	start_ind      = 275
 	end_ind        = 274
 )
 
@@ -143,8 +144,8 @@ func scrape_question(question_id int, task Task) (postgres_db.CreateQuestionPara
 				InputDescription:       pgtype.Text{input, true},
 				OutputDescription:      pgtype.Text{output, true},
 				ConstraintsDescription: pgtype.Text{cons, true},
-				TimeConstraint:         int32(tm_con),
-				MemConstraint:          int32(mem_con),
+				TimeConstraint:         int32(tm_con)*1000,
+				MemConstraint:          int32(mem_con)*1000,
 				ExampleInputs:          exp_inp,
 				ExampleOutputs:         exp_out,
 			}
