@@ -1,21 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, Lock, User, ArrowRight, ShieldCheck } from "lucide-react";
+import { Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { registerUser } from "@/lib/api";
 
 export default function RegisterPage() {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: implement registration API
-    console.warn("Registration not connected");
-    setIsLoading(false);
+    setError("");
+
+    const result = await registerUser(email, password);
+
+    if (result.ok) {
+      router.push("/login");
+    } else {
+      setError(result.message || "Registration failed. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -31,7 +41,9 @@ export default function RegisterPage() {
                 <ShieldCheck className="w-8 h-8 text-cyan-400" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Join CodeForge</h1>
+            <h1 className="text-3xl font-bold text-white tracking-tight">
+              Join CodeForge
+            </h1>
             <p className="text-neutral-400 text-sm mt-2 text-center">
               Start your competitive programming journey today.
             </p>
@@ -39,24 +51,9 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-neutral-300 ml-1">Username</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-neutral-500" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all text-sm"
-                  placeholder="coding_ninja"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-neutral-300 ml-1">Email Address</label>
+              <label className="text-sm font-medium text-neutral-300 ml-1">
+                Email Address
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-neutral-500" />
@@ -73,7 +70,9 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-neutral-300 ml-1">Password</label>
+              <label className="text-sm font-medium text-neutral-300 ml-1">
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-neutral-500" />
@@ -89,6 +88,12 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {error && (
+              <div className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isLoading}
@@ -101,7 +106,10 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-neutral-400 mt-8">
             Already have an account?{" "}
-            <Link href="/login" className="text-white font-medium hover:text-cyan-300 transition-colors">
+            <Link
+              href="/login"
+              className="text-white font-medium hover:text-cyan-300 transition-colors"
+            >
               Sign in
             </Link>
           </p>

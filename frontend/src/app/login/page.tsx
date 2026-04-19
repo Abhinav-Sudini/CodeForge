@@ -3,18 +3,33 @@
 import Link from "next/link";
 import { Mail, Lock, ArrowRight, UserCircle2 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { loginUser } from "@/lib/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: wire up with the authenticaton backend
-    console.warn("Auth endpoint not configured yet");
-    setIsLoading(false);
+    setError("");
+
+    const result = await loginUser(email, password);
+
+    if (result.ok) {
+      localStorage.setItem("cf_authed", "1");
+      window.dispatchEvent(new Event("auth-change"));
+      router.push("/");
+    } else {
+      setError(
+        result.message || "Login failed. Please check your credentials.",
+      );
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -30,7 +45,9 @@ export default function LoginPage() {
                 <UserCircle2 className="w-8 h-8 text-indigo-400" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Welcome Back</h1>
+            <h1 className="text-3xl font-bold text-white tracking-tight">
+              Welcome Back
+            </h1>
             <p className="text-neutral-400 text-sm mt-2 text-center">
               Login to continue solving challenges on CodeForge.
             </p>
@@ -38,7 +55,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-neutral-300 ml-1">Email Address</label>
+              <label className="text-sm font-medium text-neutral-300 ml-1">
+                Email Address
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-neutral-500" />
@@ -56,8 +75,15 @@ export default function LoginPage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between ml-1">
-                <label className="text-sm font-medium text-neutral-300">Password</label>
-                <a href="#" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Forgot password?</a>
+                <label className="text-sm font-medium text-neutral-300">
+                  Password
+                </label>
+                <a
+                  href="#"
+                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  Forgot password?
+                </a>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -74,6 +100,12 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {error && (
+              <div className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isLoading}
@@ -85,8 +117,11 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-sm text-neutral-400 mt-8">
-            Don't have an account?{" "}
-            <Link href="/register" className="text-white font-medium hover:text-indigo-300 transition-colors">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/register"
+              className="text-white font-medium hover:text-indigo-300 transition-colors"
+            >
               Create one now
             </Link>
           </p>

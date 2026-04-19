@@ -37,10 +37,9 @@ export default function ProblemsDashboard({ questions }: ProblemsDashboardProps)
       const cat = q.QuestionCategory || "Uncategorized";
       counts[cat] = (counts[cat] || 0) + 1;
     });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]); // sort by count descending
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
   }, [questions]);
 
-  // map colors
   const categoryColorMap = useMemo(() => {
     const map: Record<string, typeof CATEGORY_COLORS[0]> = {
       "All": { hoverBg: "hover:bg-white/10", borderHover: "hover:border-white/20", dot: "bg-white", activeBg: "bg-white/10", activeBorder: "border-white/30" }

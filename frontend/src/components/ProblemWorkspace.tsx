@@ -7,7 +7,7 @@ import { Clock, HardDrive, CheckCircle, XCircle, ArrowLeft } from "lucide-react"
 import parse, { HTMLReactParserOptions } from "html-react-parser";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import { QuestionDetail, SubmissionVerdict } from "@/lib/api";
+import { QuestionDetail, SubmissionVerdict, fetchQuestionSubmissions } from "@/lib/api";
 
 const parseOptions: HTMLReactParserOptions = {
   replace: (domNode: any) => {
@@ -36,12 +36,19 @@ interface ProblemWorkspaceProps {
 }
 
 export default function ProblemWorkspace({ question, submissions }: ProblemWorkspaceProps) {
-  const [leftWidth, setLeftWidth] = useState(45); // percentage
+  const [leftWidth, setLeftWidth] = useState(45);
   const [activeTab, setActiveTab] = useState<"description" | "submissions">("description");
   const [selectedHistoricalVerdict, setSelectedHistoricalVerdict] = useState<SubmissionVerdict | null>(null);
   
-  // local submissions for instant update
   const [localSubmissions, setLocalSubmissions] = useState<SubmissionVerdict[]>(submissions);
+  
+  useEffect(() => {
+    fetchQuestionSubmissions(question.QuestionID).then((data) => {
+      if (data && Array.isArray(data)) {
+        setLocalSubmissions(data);
+      }
+    });
+  }, [question.QuestionID]);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -52,7 +59,6 @@ export default function ProblemWorkspace({ question, submissions }: ProblemWorks
       const containerRect = containerRef.current.getBoundingClientRect();
       let newWidthPercentage = ((e.clientX - containerRect.left) / containerRect.width) * 100;
       
-      // boundaries
       if (newWidthPercentage < 20) newWidthPercentage = 20;
       if (newWidthPercentage > 80) newWidthPercentage = 80;
       

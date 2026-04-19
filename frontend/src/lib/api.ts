@@ -40,11 +40,55 @@ export interface CodeSubmissionContext {
   code: string;
 }
 
-// -- API Helpers --
+// Auth
+
+export async function registerUser(
+  email: string,
+  password: string,
+): Promise<{ ok: boolean; message: string }> {
+  try {
+    const res = await fetch(`/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ UserName: email, Password: password }),
+    });
+    if (res.ok) {
+      return { ok: true, message: "user created" };
+    }
+    return { ok: false, message: "Registration failed. An account with this email might already exist." };
+  } catch (err) {
+    console.error(err);
+    return { ok: false, message: "Network error. Please try again." };
+  }
+}
+
+export async function loginUser(
+  email: string,
+  password: string,
+): Promise<{ ok: boolean; message: string }> {
+  try {
+    const res = await fetch(`/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ UserName: email, Password: password }),
+    });
+    if (res.ok) {
+      return { ok: true, message: "" };
+    }
+    return { ok: false, message: "Invalid email or password. Please try again." };
+  } catch (err) {
+    console.error(err);
+    return { ok: false, message: "Network error. Please try again." };
+  }
+}
+
+// API Helpers
 
 export async function fetchQuestions(): Promise<QuestionMinimal[]> {
   try {
-    const res = await fetch(`${API_BASE}/question/`, { next: { revalidate: 10 } });
+    const res = await fetch(`${API_BASE}/question/`, {
+      next: { revalidate: 10 },
+    });
     if (!res.ok) throw new Error("Failed to fetch questions");
     const data = await res.json();
     return data.Questions || [];
@@ -54,9 +98,13 @@ export async function fetchQuestions(): Promise<QuestionMinimal[]> {
   }
 }
 
-export async function fetchQuestionDetail(id: number): Promise<QuestionDetail | null> {
+export async function fetchQuestionDetail(
+  id: number,
+): Promise<QuestionDetail | null> {
   try {
-    const res = await fetch(`${API_BASE}/question/${id}/`, { cache: 'no-store' });
+    const res = await fetch(`${API_BASE}/question/${id}/`, {
+      cache: "no-store",
+    });
     if (!res.ok) throw new Error("Failed to fetch question detail");
     const data = await res.json();
     return data;
@@ -66,29 +114,29 @@ export async function fetchQuestionDetail(id: number): Promise<QuestionDetail | 
   }
 }
 
-export async function submitCode(payload: CodeSubmissionContext): Promise<number | null> {
-  try {
-    const res = await fetch(`${API_BASE}/judge/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("Backend error response:", errText);
-      throw new Error(`Submission rejected: ${errText}`);
-    }
-    const data = await res.json();
-    return data.Submission_id;
-  } catch (err) {
-    console.error(err);
-    return null;
+export async function submitCode(
+  payload: CodeSubmissionContext,
+): Promise<number> {
+  const res = await fetch(`/api/judge`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error("Backend error response:", errText);
+    throw new Error(`${res.status} - ${errText || "Unknown Backend Error"}`);
   }
+  const data = await res.json();
+  if (!data.Submission_id) throw new Error("No submission ID returned from server.");
+  return data.Submission_id;
 }
 
-export async function fetchVerdict(submissionId: number): Promise<SubmissionVerdict | null> {
+export async function fetchVerdict(
+  submissionId: number,
+): Promise<SubmissionVerdict | null> {
   try {
-    const res = await fetch(`${API_BASE}/submissions/${submissionId}/`);
+    const res = await fetch(`/api/submissions/${submissionId}`);
     if (!res.ok) throw new Error("Verdict fetch failed");
     return await res.json();
   } catch (err) {
@@ -97,9 +145,13 @@ export async function fetchVerdict(submissionId: number): Promise<SubmissionVerd
   }
 }
 
-export async function fetchQuestionSubmissions(qId: number): Promise<SubmissionVerdict[]> {
+export async function fetchQuestionSubmissions(
+  qId: number,
+): Promise<SubmissionVerdict[]> {
   try {
-    const res = await fetch(`${API_BASE}/question/submissions/${qId}/`, { cache: 'no-store' });
+    const res = await fetch(`/api/question-submissions/${qId}/`, {
+      cache: "no-store",
+    });
     if (!res.ok) return [];
     const data = await res.json();
     return data.AllSubmissions || [];
