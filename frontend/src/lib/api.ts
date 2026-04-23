@@ -24,6 +24,7 @@ export interface SubmissionVerdict {
   Submission_id: number;
   QuestionId: number;
   Verdict: string;
+  Submitted_code?: string;
   Mem_usage: number;
   Time_ms: number;
   WA_Test_case: number;
