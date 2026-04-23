@@ -9,7 +9,6 @@ import {
   CheckCircle,
   XCircle,
   ChevronUp,
-  Terminal,
   LogIn,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -160,10 +159,6 @@ export default function CodeEditor({
     }
   };
 
-  const handleSimulateRun = () => {
-    setVerdict({ Verdict: "Simulated Run" } as SubmissionVerdict);
-    if (!isConsoleExpanded) toggleConsole();
-  };
 
   const handleSubmit = async () => {
     if (!code.trim() || submitting) return;
@@ -237,7 +232,7 @@ export default function CodeEditor({
 
         <div className="flex items-center gap-2">
           <button
-            onClick={handleSimulateRun}
+            onClick={handleSubmit}
             disabled={submitting}
             className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-neutral-300 transition-colors text-xs px-4 py-1.5 rounded-md font-bold disabled:opacity-50"
           >
@@ -348,16 +343,12 @@ export default function CodeEditor({
                 className={`p-5 rounded-xl border ${
                   verdict.Verdict === "Accepted"
                     ? "bg-emerald-500/5 border-emerald-500/20"
-                    : verdict.Verdict === "Simulated Run"
-                      ? "bg-white/5 border-white/10"
-                      : "bg-red-500/5 border-red-500/20"
+                    : "bg-red-500/5 border-red-500/20"
                 }`}
               >
                 <div className="flex items-center gap-2 font-bold mb-4">
                   {verdict.Verdict === "Accepted" ? (
                     <CheckCircle className="w-5 h-5 text-emerald-400" />
-                  ) : verdict.Verdict === "Simulated Run" ? (
-                    <Terminal className="w-5 h-5 text-neutral-400" />
                   ) : (
                     <XCircle className="w-5 h-5 text-red-400" />
                   )}
@@ -365,16 +356,14 @@ export default function CodeEditor({
                     className={
                       verdict.Verdict === "Accepted"
                         ? "text-emerald-400"
-                        : verdict.Verdict === "Simulated Run"
-                          ? "text-neutral-300"
-                          : "text-red-400"
+                        : "text-red-400"
                     }
                   >
                     {verdict.Verdict}
                   </span>
                 </div>
 
-                {verdict.Verdict !== "Simulated Run" && (
+                {(
                   <div className="text-xs font-mono opacity-80 flex gap-6 text-neutral-400 bg-black/40 px-3 py-2 rounded border border-white/5 inline-flex mb-4">
                     {verdict.Time_ms > 0 && (
                       <span>
