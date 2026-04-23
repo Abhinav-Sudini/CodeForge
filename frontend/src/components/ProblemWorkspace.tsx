@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import CodeEditor from "./CodeEditor";
-import { Clock, HardDrive, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import { Clock, HardDrive, CheckCircle, XCircle, ArrowLeft, UserCircle } from "lucide-react";
 import parse, { HTMLReactParserOptions } from "html-react-parser";
 import katex from "katex";
 import "katex/dist/katex.min.css";
@@ -44,22 +44,21 @@ export default function ProblemWorkspace({ question, submissions }: ProblemWorks
   const [loadingSubmissionId, setLoadingSubmissionId] = useState<number | null>(null);
   
   const handleSubmissionClick = async (sub: SubmissionVerdict) => {
-    // If already selected, deselect
+    // clicking the same row again deselects it
     if (selectedHistoricalVerdict?.Submission_id === sub.Submission_id) {
       setSelectedHistoricalVerdict(null);
       return;
     }
-    // If code already fetched, use cached
+    // code was already loaded for this submission, no need to re-fetch
     if (sub.Submitted_code !== undefined) {
       setSelectedHistoricalVerdict(sub);
       return;
     }
-    // Fetch full submission detail to get Submitted_code
+    // list endpoint doesn't include the code, so we fetch the full submission
     setLoadingSubmissionId(sub.Submission_id);
     const full = await fetchVerdict(sub.Submission_id);
     setLoadingSubmissionId(null);
     if (full) {
-      // Cache it back into the list so we don't re-fetch
       setLocalSubmissions(prev =>
         prev.map(s => s.Submission_id === full.Submission_id ? full : s)
       );
@@ -120,7 +119,13 @@ export default function ProblemWorkspace({ question, submissions }: ProblemWorks
             <span className="px-2 py-0.5 bg-white/5 rounded text-neutral-500 font-mono tracking-wider">#{question.QuestionID}</span> 
             {question.QuestionName}
          </div>
-         <div className="w-[100px]" /> 
+         <Link
+           href="/profile"
+           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
+         >
+           <UserCircle className="w-4 h-4" />
+           Profile
+         </Link> 
       </nav>
 
       

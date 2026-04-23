@@ -88,8 +88,7 @@ export default function CodeEditor({
 
   useEffect(() => {
     setIsAuthed(localStorage.getItem("cf_authed") === "1");
-    // Cleanup active polling when unmounting
-    return () => stopPolling();
+    return () => stopPolling(); // stop any in-flight polls on unmount
   }, []);
 
   useEffect(() => {

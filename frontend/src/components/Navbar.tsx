@@ -6,8 +6,6 @@ import {
   Terminal,
   Code2,
   UserCircle,
-  Trophy,
-  MessageSquare,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -58,28 +56,18 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-6">
               <Link
                 href="/"
-                className="text-sm font-bold text-white transition-colors flex items-center gap-1.5 border-b-2 border-indigo-500 pb-1 pt-1"
+                className={`text-sm font-bold transition-colors flex items-center gap-1.5 pb-1 pt-1 border-b-2 ${
+                  pathname === "/" ? "text-white border-indigo-500" : "text-neutral-400 hover:text-white border-transparent"
+                }`}
               >
                 <Code2 className="w-4 h-4" />
                 Problems
               </Link>
               <Link
-                href="#"
-                className="text-sm font-medium text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5 pb-1 pt-1 border-b-2 border-transparent"
-              >
-                <Trophy className="w-4 h-4" />
-                Contests
-              </Link>
-              <Link
-                href="#"
-                className="text-sm font-medium text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5 pb-1 pt-1 border-b-2 border-transparent"
-              >
-                <MessageSquare className="w-4 h-4" />
-                Discuss
-              </Link>
-              <Link
-                href="#"
-                className="text-sm font-medium text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5 pb-1 pt-1 border-b-2 border-transparent"
+                href="/profile"
+                className={`text-sm font-medium transition-colors flex items-center gap-1.5 pb-1 pt-1 border-b-2 ${
+                  pathname === "/profile" ? "text-white border-indigo-500" : "text-neutral-400 hover:text-white border-transparent"
+                }`}
               >
                 <Settings className="w-4 h-4" />
                 Profile

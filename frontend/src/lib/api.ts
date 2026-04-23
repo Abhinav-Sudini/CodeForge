@@ -41,7 +41,6 @@ export interface CodeSubmissionContext {
   code: string;
 }
 
-// Auth
 
 export async function registerUser(
   email: string,
@@ -83,7 +82,6 @@ export async function loginUser(
   }
 }
 
-// API Helpers
 
 export async function fetchQuestions(): Promise<QuestionMinimal[]> {
   try {

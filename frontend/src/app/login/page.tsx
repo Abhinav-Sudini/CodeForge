@@ -22,6 +22,7 @@ export default function LoginPage() {
 
     if (result.ok) {
       localStorage.setItem("cf_authed", "1");
+      localStorage.setItem("cf_email", email);
       window.dispatchEvent(new Event("auth-change"));
       router.push("/");
     } else {
@@ -74,17 +75,9 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between ml-1">
-                <label className="text-sm font-medium text-neutral-300">
-                  Password
-                </label>
-                <a
-                  href="#"
-                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                >
-                  Forgot password?
-                </a>
-              </div>
+              <label className="text-sm font-medium text-neutral-300 ml-1">
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-neutral-500" />
