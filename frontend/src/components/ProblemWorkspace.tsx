@@ -3,11 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import CodeEditor from "./CodeEditor";
-import { Clock, HardDrive, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import { Clock, HardDrive, CheckCircle, XCircle, ArrowLeft, UserCircle } from "lucide-react";
 import parse, { HTMLReactParserOptions } from "html-react-parser";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import { QuestionDetail, SubmissionVerdict, fetchQuestionSubmissions } from "@/lib/api";
+import { QuestionDetail, SubmissionVerdict, fetchQuestionSubmissions, fetchVerdict } from "@/lib/api";
 
 const parseOptions: HTMLReactParserOptions = {
   replace: (domNode: any) => {
@@ -41,6 +41,32 @@ export default function ProblemWorkspace({ question, submissions }: ProblemWorks
   const [selectedHistoricalVerdict, setSelectedHistoricalVerdict] = useState<SubmissionVerdict | null>(null);
   
   const [localSubmissions, setLocalSubmissions] = useState<SubmissionVerdict[]>(submissions);
+  const [loadingSubmissionId, setLoadingSubmissionId] = useState<number | null>(null);
+  
+  const handleSubmissionClick = async (sub: SubmissionVerdict) => {
+    // clicking the same row again deselects it
+    if (selectedHistoricalVerdict?.Submission_id === sub.Submission_id) {
+      setSelectedHistoricalVerdict(null);
+      return;
+    }
+    // code was already loaded for this submission, no need to re-fetch
+    if (sub.Submitted_code !== undefined) {
+      setSelectedHistoricalVerdict(sub);
+      return;
+    }
+    // list endpoint doesn't include the code, so we fetch the full submission
+    setLoadingSubmissionId(sub.Submission_id);
+    const full = await fetchVerdict(sub.Submission_id);
+    setLoadingSubmissionId(null);
+    if (full) {
+      setLocalSubmissions(prev =>
+        prev.map(s => s.Submission_id === full.Submission_id ? full : s)
+      );
+      setSelectedHistoricalVerdict(full);
+    } else {
+      setSelectedHistoricalVerdict(sub);
+    }
+  };
   
   useEffect(() => {
     fetchQuestionSubmissions(question.QuestionID).then((data) => {
@@ -93,7 +119,13 @@ export default function ProblemWorkspace({ question, submissions }: ProblemWorks
             <span className="px-2 py-0.5 bg-white/5 rounded text-neutral-500 font-mono tracking-wider">#{question.QuestionID}</span> 
             {question.QuestionName}
          </div>
-         <div className="w-[100px]" /> 
+         <Link
+           href="/profile"
+           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
+         >
+           <UserCircle className="w-4 h-4" />
+           Profile
+         </Link> 
       </nav>
 
       
@@ -210,12 +242,14 @@ export default function ProblemWorkspace({ question, submissions }: ProblemWorks
                       {[...localSubmissions].reverse().map(sub => (
                         <tr 
                           key={sub.Submission_id} 
-                          onClick={() => setSelectedHistoricalVerdict(sub)}
+                          onClick={() => handleSubmissionClick(sub)}
                           className={`hover:bg-white/5 transition-colors group cursor-pointer ${selectedHistoricalVerdict?.Submission_id === sub.Submission_id ? 'bg-white/10' : ''}`}
                         >
                           <td className="px-4 py-3">
                             <span className={`inline-flex items-center gap-1.5 font-bold text-xs ${sub.Verdict === "Accepted" ? "text-emerald-400" : "text-red-400"}`}>
-                                {sub.Verdict === "Accepted" ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                                {loadingSubmissionId === sub.Submission_id ? (
+                                  <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin inline-block" />
+                                ) : sub.Verdict === "Accepted" ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                                 {sub.Verdict}
                             </span>
                           </td>
@@ -226,6 +260,22 @@ export default function ProblemWorkspace({ question, submissions }: ProblemWorks
                       ))}
                     </tbody>
                   </table>
+
+                  {selectedHistoricalVerdict?.Submitted_code && (
+                    <div className="mt-6 border border-white/10 rounded-xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-white/10">
+                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Submitted Code</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                          selectedHistoricalVerdict.Verdict === "Accepted" ? "text-emerald-400" : "text-red-400"
+                        }`}>
+                          {selectedHistoricalVerdict.Verdict}
+                        </span>
+                      </div>
+                      <pre className="p-4 text-xs font-mono text-indigo-200 leading-relaxed overflow-x-auto overflow-y-auto max-h-80 bg-[#0d0d14] custom-scrollbar whitespace-pre">
+                        {selectedHistoricalVerdict.Submitted_code}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="py-20 flex flex-col items-center justify-center text-center">

@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* SKELETON HERO */}
+      {/* skeleton hero */}
       <div className="mb-12 rounded-3xl bg-neutral-900 border border-white/5 p-8 sm:p-12 h-[350px] relative overflow-hidden">
         <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
         <div className="w-1/4 h-4 bg-white/10 rounded mb-6" />
@@ -14,9 +14,9 @@ export default function Loading() {
         </div>
       </div>
 
-      {/* SKELETON DASHBOARD */}
+      {/* skeleton dashboard */}
       <div className="w-full animate-fade-in-up">
-        {/* Toolbar Skeleton */}
+        {/* toolbar skeleton */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="h-12 flex-1 bg-white/5 rounded-xl border border-white/5 overflow-hidden relative">
             <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
@@ -25,14 +25,14 @@ export default function Loading() {
           <div className="h-12 w-32 bg-white/5 rounded-xl border border-white/5" />
         </div>
 
-        {/* Categories Skeleton */}
+        {/* categories skeleton */}
         <div className="flex gap-2 mb-8">
           <div className="h-8 w-20 bg-white/10 rounded-full" />
           <div className="h-8 w-24 bg-white/5 rounded-full" />
           <div className="h-8 w-32 bg-white/5 rounded-full" />
         </div>
 
-        {/* Table Skeleton */}
+        {/* table skeleton */}
         <div className="bg-neutral-900/50 border border-white/5 rounded-2xl overflow-hidden">
           <table className="w-full text-left">
             <thead>

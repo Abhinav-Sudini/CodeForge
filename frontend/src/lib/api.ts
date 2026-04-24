@@ -24,6 +24,7 @@ export interface SubmissionVerdict {
   Submission_id: number;
   QuestionId: number;
   Verdict: string;
+  Submitted_code?: string;
   Mem_usage: number;
   Time_ms: number;
   WA_Test_case: number;
@@ -40,7 +41,6 @@ export interface CodeSubmissionContext {
   code: string;
 }
 
-// Auth
 
 export async function registerUser(
   email: string,
@@ -82,7 +82,6 @@ export async function loginUser(
   }
 }
 
-// API Helpers
 
 export async function fetchQuestions(): Promise<QuestionMinimal[]> {
   try {
